@@ -51,7 +51,7 @@ public class Main {
 			switch (type) {
 			// 专题一：疑似孤僻学生分析
 			case 1:
-				new LonelyDigger().Execute();
+				new LonelyDigger3().Execute();
 				break;
 			// 专题二：疑似困难学生分析
 			case 2:

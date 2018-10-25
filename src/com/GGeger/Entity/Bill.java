@@ -3,7 +3,7 @@ package com.GGeger.Entity;
 public class Bill {
 	private long millis;
 	private String studentId;
-	private String canteenNumber;
+	private String canteenName;
 	private int pos;
 
 	public long getMillis() {
@@ -22,12 +22,12 @@ public class Bill {
 		this.studentId = studentId;
 	}
 
-	public String getCanteenNumber() {
-		return canteenNumber;
+	public String getCanteenName() {
+		return canteenName;
 	}
 
-	public void setCanteenNumber(String canteenNumber) {
-		this.canteenNumber = canteenNumber;
+	public void setCanteenName(String canteenName) {
+		this.canteenName = canteenName;
 	}
 
 	public int getPos() {

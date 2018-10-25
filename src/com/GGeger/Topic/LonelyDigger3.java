@@ -56,13 +56,14 @@ public class LonelyDigger3 {
 	// 专题一：
 	public void Execute() {
 		// 定义默认的数据文件路径
-		String path = "";
+		String path = "D:/Project/Code/Java/ProjectOfGGeger/student_loner5000.txt";
 
 		@SuppressWarnings("resource")
 		Scanner scanner = new Scanner(System.in);
 		// 判断默认文件是否存在，不存在则提示用户输入
 		while (!new File(path).exists()) {
 			System.out.println("请输入正确的数据路径：");
+			// D:\Project\Code\Java\ProjectOfGGeger\student_loner5000.txt
 			// 获取用户输入
 			path = scanner.nextLine();
 		}
@@ -88,14 +89,10 @@ public class LonelyDigger3 {
 				public void run() {
 					// 暂存读取的每一行数据
 					String line = "";
-					// 标志读取数量
-					int count = 0;
 
 					try {
 						// 当未读到文件末尾则一直读取
 						while ((line = bufferedReader.readLine()) != null) {
-							// 数量自增1
-							count++;
 							// 将数据转换为Bill并且添加到bills列表中
 							bills.add(data2Bill(line));
 						}
@@ -108,7 +105,7 @@ public class LonelyDigger3 {
 						e.printStackTrace();
 					}
 
-					System.out.println("Total " + count + " lines of data!");
+					System.out.println("Total " + bills.size() + " lines of data!");
 
 					System.out.println("<<<<<<<<<<<<<<<<<<<<");
 					System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
@@ -131,49 +128,58 @@ public class LonelyDigger3 {
 		System.out.println("开始储存所有学生的学号~");
 		System.out.println("<<<<<<<<<<<<<<<<<<<<");
 		System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+
 		// 遍历BillList
+		// 将第一条数据添加到储存学号的List中
 		_students.add(bills.get(0).getStudentId());
+
+		// 遍历所有账单
 		for (int i = 0; i < bills.size(); i++) {
+			// 标志当前学号是否已经存在与List中
 			boolean exist = false;
+			// 遍历学号List
 			for (int j = 0; j < _students.size(); j++) {
+				// 如果当前学号不存在则继续循环
 				if (!_students.get(j).equals(bills.get(i).getStudentId())) {
 					continue;
 				} else {
+					// 标志当前学号已添加到List中，退出循环
 					exist = true;
 					break;
 				}
 			}
-			//
+			// 如果当前学号没有存入List中则添加
 			if (!exist)
 				_students.add(bills.get(i).getStudentId());
 		}
 		//
 		System.out.println("We have collected " + _students.size() + " students' id");
-		//
+
+		// 根据学生个数声明二维数组(默认值为0)
 		friendshipGroup = new int[_students.size()][_students.size()];
 
 		System.out.println("<<<<<<<<<<<<<<<<<<<<");
 		System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
 		System.out.println("学号储存完毕！");
 
-		//
+		// 处理账单
 		HandleBill();
 	}
 
-	//
+	// 处理账单
 	private void HandleBill() {
 		//
 		System.out.println("账单数据处理中... ...");
 
 		//
-
 		Timer timer = new Timer();
 		timer.schedule(new TimerTask() {
 
 			@Override
 			public void run() {
-				// TODO Auto-generated method stub
+				//
 				if (bills != null && bills.size() != 0) {
+					//
 					System.gc();
 					// 或者下面，两者等价
 					Runtime.getRuntime().gc();
@@ -187,8 +193,10 @@ public class LonelyDigger3 {
 
 		//
 		int index = 0;
+
 		// 从第一项开始遍历账单
 		while (!(index > (bills.size() - 1))) {
+
 			// 标识下一项数据的下标
 			int next = index + 1;
 
@@ -197,6 +205,9 @@ public class LonelyDigger3 {
 
 			// 该生吃饭次数自增
 			friendshipGroup[signal][signal]++;
+
+			// 声名临时List，储存五分钟内统计过的学生信息
+			List<String> temp_added_student = new ArrayList<String>();
 
 			// 如果存在后续信息
 			while (next < bills.size()) {
@@ -208,21 +219,41 @@ public class LonelyDigger3 {
 				// 比较的账单的学生id
 				int _signal = _students.indexOf(bills.get(next).getStudentId());
 
+				// 判断当前学生是否已经存在于临时List中
+				if (temp_added_student.indexOf(bills.get(next).getStudentId()) != -1) {
+					//
+					/*
+					 * System.out.println(bills.get(next).getStudentId() + "在距"
+					 * + new SimpleDateFormat().format(new
+					 * Date(bills.get(index).getMillis())) + "的" + T +
+					 * "分钟内重复刷卡！");
+					 */
+					//
+					next++;
+
+					continue;
+				}
+
 				// 判断比较的账单学生_student_id与当前student_id不同并且食堂信息相同
-				if (signal != _signal
-						&& bills.get(next).getCanteenNumber().equals(bills.get(index).getCanteenNumber())) {
+				if (signal != _signal && bills.get(next).getCanteenName().equals(bills.get(index).getCanteenName())) {
 
 					// 当前学生与下一位学生满足时间与位置上的好友条件
 					friendshipGroup[signal][_signal]++;
 
 					// 同理，下一位学生与当前学生也满足时间与位置上的好友条件
 					friendshipGroup[_signal][signal]++;
+
+					// 将该好友添加到临时List中
+					temp_added_student.add(bills.get(next).getStudentId());
 				}
 				// 继续遍历下一位
 				next++;
 			}
 			// 移除已经判断过的数据
 			bills.remove(index);
+			//
+			temp_added_student.clear();
+			temp_added_student = null;
 		}
 
 		// (强迫症)判断数据处理完并置空
@@ -242,18 +273,22 @@ public class LonelyDigger3 {
 	// 处理结果
 	private void HandleResult() {
 		System.out.println("整理好友信息... ...");
-		//
+		// 遍历friendshipGroup
 		for (int i = 0; i < _students.size(); i++) {
 			//
 			List<String> temp_list_friends = new ArrayList<String>();
 
 			for (int j = 0; j < _students.size(); j++) {
-
+				// 当自身吃饭总次数>0并且跟某好友吃饭次数小于自身总吃饭次数
 				if (i != j && friendshipGroup[i][i] > 0 && friendshipGroup[i][j] <= friendshipGroup[i][i]) {
-					//
+					// 两人共同吃饭次数占个人吃饭次数的比例>R
 					if ((friendshipGroup[i][j] / (double) friendshipGroup[i][i]) > R) {
+						// 将该学生添加到好友列表中
 						temp_list_friends.add(_students.get(j));
 					}
+				} else {
+					if (friendshipGroup[i][j] > friendshipGroup[i][i])
+						System.out.println(friendshipGroup[i][i] + "=============" + friendshipGroup[i][j]);
 				}
 			}
 
@@ -276,7 +311,7 @@ public class LonelyDigger3 {
 		OutputResult();
 	}
 
-	//5b56187ff89c7e20c4e59140
+	// 5b56187ff89c7e20c4e59140
 	// 输出结果(孤僻学子不会输出到文本)
 	private void OutputResult() {
 		//
@@ -357,7 +392,7 @@ public class LonelyDigger3 {
 		// 数据第二项：学生id
 		bill.setStudentId(values[1]);
 		// 数据第三项：食堂名称
-		bill.setCanteenNumber(values[2]);
+		bill.setCanteenName(values[2]);
 		// 数据第四项：Pos机编号
 		bill.setPos(Integer.parseInt(values[3]));
 

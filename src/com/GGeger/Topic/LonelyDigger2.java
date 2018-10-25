@@ -148,7 +148,7 @@ public class LonelyDigger2 {
 				String _student_id = Bill.getStudentId();
 
 				// 判断比较的账单学生_student_id与当前student_id不同并且食堂信息相同
-				if (!student_id.equals(_student_id) && head.getCanteenNumber().equals(Bill.getCanteenNumber())) {
+				if (!student_id.equals(_student_id) && head.getCanteenName().equals(Bill.getCanteenName())) {
 					// 当前学生与下一位学生满足时间与位置上的好友条件
 					students.get(student_id).getFriends().put(_student_id,
 							students.get(student_id).getFriends().get(_student_id) == null ? 0
@@ -194,7 +194,7 @@ public class LonelyDigger2 {
 			String _student_id = Bill.getStudentId();
 
 			// 判断比较的账单学生_student_id与当前student_id不同并且食堂信息相同
-			if (!student_id.equals(_student_id) && head.getCanteenNumber().equals(Bill.getCanteenNumber())) {
+			if (!student_id.equals(_student_id) && head.getCanteenName().equals(Bill.getCanteenName())) {
 				// 当前学生与下一位学生满足时间与位置上的好友条件
 				students.get(student_id).getFriends().put(_student_id,
 						students.get(student_id).getFriends().get(_student_id) == null ? 0
@@ -317,7 +317,7 @@ public class LonelyDigger2 {
 		// 数据第二项：学生id
 		bill.setStudentId(values[1]);
 		// 数据第三项：食堂名称
-		bill.setCanteenNumber(values[2]);
+		bill.setCanteenName(values[2]);
 		// 数据第四项：Pos机编号
 		bill.setPos(Integer.parseInt(values[3]));
 
