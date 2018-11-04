@@ -7,25 +7,21 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import javax.print.attribute.standard.DateTimeAtCompleted;
-
 import com.GGeger.Entity.Bill;
 import com.GGeger.Entity.Friend;
-import com.GGeger.Entity.Student;
+import com.GGeger.Interface.Data2Bill;
 import com.GGeger.Program.Main;
+import com.GGeger.Utils.DateTransfer;
 
-public class LonelyDigger3 {
+public class LonelyDigger3 implements Data2Bill {
 
 	// R=1/4
 	private double R = 1 / 4;
@@ -37,9 +33,6 @@ public class LonelyDigger3 {
 	private List<Bill> bills = new ArrayList<Bill>();
 	// 好友输出
 	private List<Friend> friends = new ArrayList<Friend>();
-	//
-	private Map<String, Student> students = new HashMap<String, Student>();
-
 	//
 	private List<String> _students = new ArrayList<String>();
 
@@ -56,14 +49,14 @@ public class LonelyDigger3 {
 	// 专题一：
 	public void Execute() {
 		// 定义默认的数据文件路径
-		String path = "D:/Project/Code/Java/ProjectOfGGeger/student_loner5000.txt";
+		String path = "C:/Users/DDenry/Desktop/student_loner.txt";
 
 		@SuppressWarnings("resource")
 		Scanner scanner = new Scanner(System.in);
 		// 判断默认文件是否存在，不存在则提示用户输入
 		while (!new File(path).exists()) {
 			System.out.println("请输入正确的数据路径：");
-			// D:\Project\Code\Java\ProjectOfGGeger\student_loner5000.txt
+			// C:/Users/DDenry/Desktop/student_loner.txt
 			// 获取用户输入
 			path = scanner.nextLine();
 		}
@@ -94,7 +87,7 @@ public class LonelyDigger3 {
 						// 当未读到文件末尾则一直读取
 						while ((line = bufferedReader.readLine()) != null) {
 							// 将数据转换为Bill并且添加到bills列表中
-							bills.add(data2Bill(line));
+							bills.add(transfer2Bill(line));
 						}
 						// 关闭读取流
 						bufferedReader.close();
@@ -166,6 +159,9 @@ public class LonelyDigger3 {
 		HandleBill();
 	}
 
+	/**
+	 * 将所有学号存入_students(List)中 遍历账单数据，读出学号后从_students中取出indexOf作为数组下标
+	 */
 	// 处理账单
 	private void HandleBill() {
 		//
@@ -190,6 +186,9 @@ public class LonelyDigger3 {
 				}
 			}
 		}, 5000, 10000);
+
+		// TODO:hmmmmmmmmmmmmmm
+		timer.cancel();
 
 		//
 		int index = 0;
@@ -280,17 +279,17 @@ public class LonelyDigger3 {
 
 			for (int j = 0; j < _students.size(); j++) {
 				// 当自身吃饭总次数>0并且跟某好友吃饭次数小于自身总吃饭次数
-				if (i != j && friendshipGroup[i][i] > 0 && friendshipGroup[i][j] <= friendshipGroup[i][i]) {
+				if (i != j && friendshipGroup[i][j] <= friendshipGroup[i][i]) {
 					// 两人共同吃饭次数占个人吃饭次数的比例>R
 					if ((friendshipGroup[i][j] / (double) friendshipGroup[i][i]) > R) {
 						// 将该学生添加到好友列表中
 						temp_list_friends.add(_students.get(j));
 					}
-				} else {
-					if (friendshipGroup[i][j] > friendshipGroup[i][i])
-						System.out.println(friendshipGroup[i][i] + "=============" + friendshipGroup[i][j]);
 				}
 			}
+
+			//
+			System.out.println(_students.get(i) + "#" + friendshipGroup[i][i]);
 
 			// 将当前学生的好友列表存入friends列表
 			Friend friend = new Friend();
@@ -307,6 +306,7 @@ public class LonelyDigger3 {
 		System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
 
 		System.out.println("好友信息整理完毕！");
+
 		// 输出数据
 		OutputResult();
 	}
@@ -377,32 +377,20 @@ public class LonelyDigger3 {
 			System.out.println("共找到" + lonerCount + "名\"孤僻学子\"哦~");
 
 		System.out.println("");
+
 		// 返回到菜单界面
 		Main.ShowMenu();
 	}
 
-	// 数据转换为账单
-	private Bill data2Bill(String data) {
+	@Override
+	public Bill transfer2Bill(String data) {
 		// 分隔数据
 		String[] values = data.split(",");
-		// 创建账单实例
-		Bill bill = new Bill();
-		// 数据第一项：String转换为milliseconds
-		bill.setMillis(string2Date(values[0]).getTime());
+		// 数据第一项：账单时间
 		// 数据第二项：学生id
-		bill.setStudentId(values[1]);
 		// 数据第三项：食堂名称
-		bill.setCanteenName(values[2]);
-		// 数据第四项：Pos机编号
-		bill.setPos(Integer.parseInt(values[3]));
-
-		return bill;
-	}
-
-	// 字符串转换为日期类型
-	private Date string2Date(String stringFromat) {
-		// 根据数据时间格式转换成日期
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		return formatter.parse(stringFromat, new ParsePosition(0));
+		// 数据第四项：POS机编号
+		return new Bill.BillBuilder().setMillis(DateTransfer.string2Date(values[0]).getTime()).setStudentId(values[1])
+				.setCanteenName(values[2]).setPointofsales(Integer.parseInt(values[3])).build();
 	}
 }

@@ -21,9 +21,11 @@ import java.util.Scanner;
 import com.GGeger.Entity.Bill;
 import com.GGeger.Entity.Friend;
 import com.GGeger.Entity.Student;
+import com.GGeger.Interface.Data2Bill;
 import com.GGeger.Program.Main;
+import com.GGeger.Utils.DateTransfer;
 
-public class LonelyDigger2 {
+public class LonelyDigger2 implements Data2Bill {
 
 	// R=1/4
 	private double R = 1 / 4;
@@ -87,7 +89,7 @@ public class LonelyDigger2 {
 							// 数量自增1
 							count++;
 							//
-							Bill bill = data2Bill(line);
+							Bill bill = transfer2Bill(line);
 
 							// 将数据添加到队列中
 							queue.offer(bill);
@@ -306,28 +308,15 @@ public class LonelyDigger2 {
 		Main.ShowMenu();
 	}
 
-	// 数据转换为账单
-	private Bill data2Bill(String data) {
+	@Override
+	public Bill transfer2Bill(String data) {
 		// 分隔数据
 		String[] values = data.split(",");
-		// 创建账单实例
-		Bill bill = new Bill();
-		// 数据第一项：String转换为milliseconds
-		bill.setMillis(string2Date(values[0]).getTime());
+		// 数据第一项：账单时间
 		// 数据第二项：学生id
-		bill.setStudentId(values[1]);
 		// 数据第三项：食堂名称
-		bill.setCanteenName(values[2]);
-		// 数据第四项：Pos机编号
-		bill.setPos(Integer.parseInt(values[3]));
-
-		return bill;
-	}
-
-	// 字符串转换为日期类型
-	private Date string2Date(String stringFromat) {
-		// 根据数据时间格式转换成日期
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		return formatter.parse(stringFromat, new ParsePosition(0));
+		// 数据第四项：POS机编号
+		return new Bill.BillBuilder().setMillis(DateTransfer.string2Date(values[0]).getTime()).setStudentId(values[1])
+				.setCanteenName(values[2]).setPointofsales(Integer.parseInt(values[3])).build();
 	}
 }
