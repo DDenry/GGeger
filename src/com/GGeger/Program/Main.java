@@ -1,9 +1,6 @@
 package com.GGeger.Program;
 
 import java.util.Scanner;
-
-import com.GGeger.Topic.LonelyDigger;
-import com.GGeger.Topic.LonelyDigger2;
 import com.GGeger.Topic.LonelyDigger3;
 import com.GGeger.Topic.PoorDigger;
 

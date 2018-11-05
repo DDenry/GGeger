@@ -9,7 +9,7 @@ public class Bill {
 	private String canteenName;
 	// 消费金额
 	private float price;
-	//
+	// 刷卡机
 	private int pointofsales;
 
 	public Bill(BillBuilder billBuilder) {

@@ -7,9 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Timer;
@@ -17,11 +15,11 @@ import java.util.TimerTask;
 
 import com.GGeger.Entity.Bill;
 import com.GGeger.Entity.Friend;
-import com.GGeger.Interface.Data2Bill;
+import com.GGeger.Program.BaseProcess;
 import com.GGeger.Program.Main;
 import com.GGeger.Utils.DateTransfer;
 
-public class LonelyDigger3 implements Data2Bill {
+public class LonelyDigger3 extends BaseProcess {
 
 	// R=1/4
 	private double R = 1 / 4;
@@ -61,11 +59,15 @@ public class LonelyDigger3 implements Data2Bill {
 			path = scanner.nextLine();
 		}
 
-		System.out.println(">>>>>>>>>>>>>>>>>>>>");
-		System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+		// 挖掘数据
+		digData(path);
 
-		// 文件存在，开始获取数据
-		System.out.println("正在获取数据... ...");
+	}
+
+	@Override
+	public void digData(String path) {
+
+		log("正在获取数据... ...");
 
 		// 文件读取
 		FileReader fileReader;
@@ -100,10 +102,7 @@ public class LonelyDigger3 implements Data2Bill {
 
 					System.out.println("Total " + bills.size() + " lines of data!");
 
-					System.out.println("<<<<<<<<<<<<<<<<<<<<");
-					System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
-
-					System.out.println("全部数据已成功转换为账单！");
+					log("全部数据已成功转换为账单！");
 
 					// 将学生学号储存
 					MatchStudentId();
@@ -118,9 +117,8 @@ public class LonelyDigger3 implements Data2Bill {
 
 	//
 	private void MatchStudentId() {
-		System.out.println("开始储存所有学生的学号~");
-		System.out.println("<<<<<<<<<<<<<<<<<<<<");
-		System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+
+		log("开始储存所有学生的学号~");
 
 		// 遍历BillList
 		// 将第一条数据添加到储存学号的List中
@@ -151,9 +149,7 @@ public class LonelyDigger3 implements Data2Bill {
 		// 根据学生个数声明二维数组(默认值为0)
 		friendshipGroup = new int[_students.size()][_students.size()];
 
-		System.out.println("<<<<<<<<<<<<<<<<<<<<");
-		System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
-		System.out.println("学号储存完毕！");
+		log("学号储存完毕！");
 
 		// 处理账单
 		HandleBill();
@@ -233,6 +229,17 @@ public class LonelyDigger3 implements Data2Bill {
 					continue;
 				}
 
+				/*
+				 * TODO:发现问题
+				 * 目前流程：在遍历账单时会顺序取出第一条数据作为基准，向下找出满足与基准账单消费时间在5分钟内的所有符合账单。
+				 * 在满足时间的条件下继续判断学生学号以及消费餐厅的名称，如果找到疑似好友（满足除吃饭频率的其余好友条件），则
+				 * 将记录好友吃饭次数的二维数组自增。 eg:取出第1条账单作为基准，向下取出第2条账单信息发现条件满足疑似好友，此时
+				 * count[0][0]++,count[0][1]++,并且count[1][0]++。
+				 * 当取出第2条账单作为基准时，向下遍历出又与第1条账单相同学号的刷卡信息，此时
+				 * count[1][1]++,count[1][0]++,并且count[0][1]++。
+				 * 由于没有向上的判断，所以最终会导致某一学生与好友的吃饭次数大于该生的总吃饭次数的bug。
+				 */
+
 				// 判断比较的账单学生_student_id与当前student_id不同并且食堂信息相同
 				if (signal != _signal && bills.get(next).getCanteenName().equals(bills.get(index).getCanteenName())) {
 
@@ -260,10 +267,8 @@ public class LonelyDigger3 implements Data2Bill {
 			bills = null;
 		}
 
-		System.out.println("<<<<<<<<<<<<<<<<<<<<");
-		System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
 		//
-		System.out.println("全部账单信息处理完毕！");
+		log("全部账单信息处理完毕！");
 
 		// 处理储存好友的二维列表
 		HandleResult();
@@ -301,19 +306,18 @@ public class LonelyDigger3 implements Data2Bill {
 		// 象征意义的置空变量
 		_students.clear();
 		_students = null;
-		//
-		System.out.println("<<<<<<<<<<<<<<<<<<<<");
-		System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
 
-		System.out.println("好友信息整理完毕！");
+		//
+		log("好友信息整理完毕！");
 
 		// 输出数据
-		OutputResult();
+		outputResult();
 	}
 
 	// 5b56187ff89c7e20c4e59140
 	// 输出结果(孤僻学子不会输出到文本)
-	private void OutputResult() {
+	@Override
+	public void outputResult() {
 		//
 		System.out.println("正在写入文件以及输出结果：");
 
@@ -364,10 +368,8 @@ public class LonelyDigger3 implements Data2Bill {
 			e.printStackTrace();
 		}
 		//
-		System.out.println("<<<<<<<<<<<<<<<<<<<<");
-		System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
-		//
-		System.out.println("文件写入完毕！");
+		log("文件写入完毕！");
+
 		System.out.println("保存路径为：" + new File("").getAbsoluteFile() + File.separator + "_log.txt");
 
 		// 不存在孤僻学子
