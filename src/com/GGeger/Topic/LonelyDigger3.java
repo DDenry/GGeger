@@ -47,7 +47,7 @@ public class LonelyDigger3 extends BaseProcess {
 	// 专题一：
 	public void Execute() {
 		// 定义默认的数据文件路径
-		String path = "C:/Users/DDenry/Desktop/student_loner.txt";
+		String path = "C:/Users/DDenry/Desktop/_student_loner2.txt";
 
 		@SuppressWarnings("resource")
 		Scanner scanner = new Scanner(System.in);
@@ -386,13 +386,17 @@ public class LonelyDigger3 extends BaseProcess {
 
 	@Override
 	public Bill transfer2Bill(String data) {
+
 		// 分隔数据
 		String[] values = data.split(",");
 		// 数据第一项：账单时间
-		// 数据第二项：学生id
+		// 数据第二项：学生id ObjectId(.....)
 		// 数据第三项：食堂名称
-		// 数据第四项：POS机编号
-		return new Bill.BillBuilder().setMillis(DateTransfer.string2Date(values[0]).getTime()).setStudentId(values[1])
-				.setCanteenName(values[2]).setPointofsales(Integer.parseInt(values[3])).build();
+		// 数据第四项：性别 String
+		// 数据第五项：班级
+
+		return new Bill.BillBuilder().setMillis(DateTransfer.string2Date(values[0]).getTime())
+				.setStudentId(values[1].replace("ObjectId(", "").replace(")", "")).setCanteenName(values[2])
+				.setGender(values[3]).setClassName(values[4]).build();
 	}
 }

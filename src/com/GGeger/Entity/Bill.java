@@ -11,6 +11,10 @@ public class Bill {
 	private float price;
 	// 刷卡机
 	private int pointofsales;
+	// 班级
+	private String className;
+	// 性别
+	private int gender;
 
 	public Bill(BillBuilder billBuilder) {
 		this.millis = billBuilder.millis;
@@ -18,6 +22,8 @@ public class Bill {
 		this.canteenName = billBuilder.canteenName;
 		this.price = billBuilder.price;
 		this.pointofsales = billBuilder.pos;
+		this.gender = billBuilder.gender;
+		this.className = billBuilder.className;
 	}
 
 	/**
@@ -29,6 +35,8 @@ public class Bill {
 		String canteenName = null;
 		float price = 0.0f;
 		int pos = -1;
+		int gender = 0;
+		String className = "";
 
 		public BillBuilder setMillis(long millis) {
 			this.millis = millis;
@@ -52,6 +60,16 @@ public class Bill {
 
 		public BillBuilder setPointofsales(int pos) {
 			this.pos = pos;
+			return this;
+		}
+
+		public BillBuilder setClassName(String className) {
+			this.className = className;
+			return this;
+		}
+
+		public BillBuilder setGender(String gender) {
+			this.gender = (gender.equals("男") ? 0 : 1);
 			return this;
 		}
 
@@ -91,5 +109,29 @@ public class Bill {
 
 	public void setPointofsales(int pos) {
 		this.pointofsales = pos;
+	}
+
+	public float getPrice() {
+		return price;
+	}
+
+	public void setPrice(float price) {
+		this.price = price;
+	}
+
+	public String getClassName() {
+		return className;
+	}
+
+	public void setClassName(String className) {
+		this.className = className;
+	}
+
+	public int getGender() {
+		return gender;
+	}
+
+	public void setGender(String gender) {
+		this.gender = (gender.equals("男") ? 0 : 1);
 	}
 }
