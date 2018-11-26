@@ -1,4 +1,4 @@
-package com.GGeger.Topic;
+package com.GGeger.topic;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -18,12 +18,12 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Scanner;
 
-import com.GGeger.Entity.Bill;
-import com.GGeger.Entity.Friend;
-import com.GGeger.Entity.Student;
-import com.GGeger.Interface.Data2Bill;
-import com.GGeger.Program.Main;
-import com.GGeger.Utils.DateTransfer;
+import com.GGeger.entity.BillModel;
+import com.GGeger.entity.Friend;
+import com.GGeger.entity.StudentModel;
+import com.GGeger.process.Data2Bill;
+import com.GGeger.program.Main;
+import com.GGeger.utils.DateTransfer;
 
 public class LonelyDigger2 implements Data2Bill {
 
@@ -36,9 +36,9 @@ public class LonelyDigger2 implements Data2Bill {
 	// 好友输出
 	private List<Friend> friends = new ArrayList<Friend>();
 	//
-	private Map<String, Student> students = new HashMap<String, Student>();
+	private Map<String, StudentModel> students = new HashMap<String, StudentModel>();
 	//
-	private Queue<Bill> queue = new LinkedList<Bill>();
+	private Queue<BillModel> queue = new LinkedList<BillModel>();
 
 	// 构造函数
 	public LonelyDigger2() {
@@ -89,7 +89,7 @@ public class LonelyDigger2 implements Data2Bill {
 							// 数量自增1
 							count++;
 							//
-							Bill bill = transfer2Bill(line);
+							BillModel bill = transfer2Bill(line);
 
 							// 将数据添加到队列中
 							queue.offer(bill);
@@ -130,14 +130,14 @@ public class LonelyDigger2 implements Data2Bill {
 		while (queue.size() > 1) {
 			// 处理队列数据
 			// 取出队首元素并从队列中移除
-			Bill head = queue.poll();
+			BillModel head = queue.poll();
 
 			// 账单信息中的学生id
 			String student_id = head.getStudentId();
 
 			// 如果不存在该生的字段则声明
 			if (!students.containsKey(student_id)) {
-				Student student = new Student();
+				StudentModel student = new StudentModel();
 				student.setId(student_id);
 				students.put(student_id, student);
 			}
@@ -157,7 +157,7 @@ public class LonelyDigger2 implements Data2Bill {
 									: students.get(student_id).getFriends().get(_student_id) + 1);
 					//
 					if (!students.containsKey(_student_id)) {
-						Student student = new Student();
+						StudentModel student = new StudentModel();
 						student.setId(_student_id);
 						students.put(_student_id, student);
 					}
@@ -171,17 +171,17 @@ public class LonelyDigger2 implements Data2Bill {
 	}
 
 	// 筛选疑似好友
-	private void CheckFriends(Bill bill) {
+	private void CheckFriends(BillModel bill) {
 		// 处理队列数据
 		// 取出队首元素并从队列中移除
-		Bill head = queue.poll();
+		BillModel head = queue.poll();
 
 		// 账单信息中的学生id
 		String student_id = head.getStudentId();
 
 		// 如果不存在该生的字段则声明
 		if (!students.containsKey(student_id)) {
-			Student student = new Student();
+			StudentModel student = new StudentModel();
 			student.setId(student_id);
 			students.put(student_id, student);
 		}
@@ -203,7 +203,7 @@ public class LonelyDigger2 implements Data2Bill {
 								: students.get(student_id).getFriends().get(_student_id) + 1);
 				//
 				if (!students.containsKey(_student_id)) {
-					Student student = new Student();
+					StudentModel student = new StudentModel();
 					student.setId(_student_id);
 					students.put(_student_id, student);
 				}
@@ -309,14 +309,14 @@ public class LonelyDigger2 implements Data2Bill {
 	}
 
 	@Override
-	public Bill transfer2Bill(String data) {
+	public BillModel transfer2Bill(String data) {
 		// 分隔数据
 		String[] values = data.split(",");
 		// 数据第一项：账单时间
 		// 数据第二项：学生id
 		// 数据第三项：食堂名称
 		// 数据第四项：POS机编号
-		return new Bill.BillBuilder().setMillis(DateTransfer.string2Date(values[0]).getTime()).setStudentId(values[1])
+		return new BillModel.BillBuilder().setMillis(DateTransfer.string2Date(values[0]).getTime()).setStudentId(values[1])
 				.setCanteenName(values[2]).setPointofsales(Integer.parseInt(values[3])).build();
 	}
 }

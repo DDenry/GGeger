@@ -1,8 +1,9 @@
-package com.GGeger.Program;
+package com.GGeger.program;
 
 import java.util.Scanner;
-import com.GGeger.Topic.LonelyDigger3;
-import com.GGeger.Topic.PoorDigger;
+
+import com.GGeger.topic.LonelyDigger4;
+import com.GGeger.topic.PoorDigger;
 
 public class Main {
 
@@ -48,7 +49,7 @@ public class Main {
 			switch (type) {
 			// 专题一：疑似孤僻学生分析
 			case 1:
-				new LonelyDigger3().Execute();
+				new LonelyDigger4().execute();
 				break;
 			// 专题二：疑似困难学生分析
 			case 2:

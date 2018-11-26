@@ -1,4 +1,4 @@
-package com.GGeger.Entity;
+package com.GGeger.entity;
 
 import java.util.List;
 

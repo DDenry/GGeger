@@ -1,4 +1,4 @@
-package com.GGeger.Interface;
+package com.GGeger.process;
 
 public interface DataDigger {
 	/**

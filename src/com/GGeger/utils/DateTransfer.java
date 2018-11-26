@@ -1,4 +1,4 @@
-package com.GGeger.Utils;
+package com.GGeger.utils;
 
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;

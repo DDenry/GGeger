@@ -1,29 +1,23 @@
-package com.GGeger.Entity;
+package com.GGeger.entity;
 
 public class Bill {
 	// 账单时间
 	private long millis;
-	// 学生id
-	private String studentId;
+	//
+	private Student student;
 	// 餐厅名称
 	private String canteenName;
 	// 消费金额
 	private float price;
 	// 刷卡机
 	private int pointofsales;
-	// 班级
-	private String className;
-	// 性别
-	private int gender;
 
 	public Bill(BillBuilder billBuilder) {
 		this.millis = billBuilder.millis;
-		this.studentId = billBuilder.studentId;
+		this.student = billBuilder.student;
 		this.canteenName = billBuilder.canteenName;
 		this.price = billBuilder.price;
 		this.pointofsales = billBuilder.pos;
-		this.gender = billBuilder.gender;
-		this.className = billBuilder.className;
 	}
 
 	/**
@@ -31,20 +25,18 @@ public class Bill {
 	 */
 	public static class BillBuilder {
 		long millis = -1;
-		String studentId = null;
+		Student student = null;
 		String canteenName = null;
 		float price = 0.0f;
 		int pos = -1;
-		int gender = 0;
-		String className = "";
 
 		public BillBuilder setMillis(long millis) {
 			this.millis = millis;
 			return this;
 		}
 
-		public BillBuilder setStudentId(String studentId) {
-			this.studentId = studentId;
+		public BillBuilder setStudent(Student student) {
+			this.student = student;
 			return this;
 		}
 
@@ -63,16 +55,6 @@ public class Bill {
 			return this;
 		}
 
-		public BillBuilder setClassName(String className) {
-			this.className = className;
-			return this;
-		}
-
-		public BillBuilder setGender(String gender) {
-			this.gender = (gender.equals("男") ? 0 : 1);
-			return this;
-		}
-
 		//
 		public Bill build() {
 			return new Bill(this);
@@ -87,12 +69,12 @@ public class Bill {
 		this.millis = millis;
 	}
 
-	public String getStudentId() {
-		return studentId;
+	public Student getStudent() {
+		return student;
 	}
 
-	public void setStudentId(String studentId) {
-		this.studentId = studentId;
+	public void setStudent(Student student) {
+		this.student = student;
 	}
 
 	public String getCanteenName() {
@@ -119,19 +101,4 @@ public class Bill {
 		this.price = price;
 	}
 
-	public String getClassName() {
-		return className;
-	}
-
-	public void setClassName(String className) {
-		this.className = className;
-	}
-
-	public int getGender() {
-		return gender;
-	}
-
-	public void setGender(String gender) {
-		this.gender = (gender.equals("男") ? 0 : 1);
-	}
 }

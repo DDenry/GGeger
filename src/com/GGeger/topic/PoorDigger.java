@@ -1,4 +1,4 @@
-package com.GGeger.Topic;
+package com.GGeger.topic;
 
 public class PoorDigger {
 

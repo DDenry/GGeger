@@ -1,9 +1,10 @@
-package com.GGeger.Entity;
+package com.GGeger.entity;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class Student {
+public class StudentModel {
+
 	private String id;
 	private int mealCount = 0;
 	private Map<String, Integer> friends = new HashMap<String, Integer>();
