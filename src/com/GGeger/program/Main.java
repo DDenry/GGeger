@@ -2,7 +2,7 @@ package com.GGeger.program;
 
 import java.util.Scanner;
 
-import com.GGeger.topic.LonelyDigger4;
+import com.GGeger.topic.LonelyDigger5;
 import com.GGeger.topic.PoorDigger;
 
 public class Main {
@@ -49,7 +49,7 @@ public class Main {
 			switch (type) {
 			// 专题一：疑似孤僻学生分析
 			case 1:
-				new LonelyDigger4().execute();
+				new LonelyDigger5().execute();
 				break;
 			// 专题二：疑似困难学生分析
 			case 2:
