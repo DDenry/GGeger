@@ -6,20 +6,20 @@ public class Student {
 	 * Student实体:包含学生Id、学生性别、年级(由班级解析获取)、
 	 */
 
-	//
+	// 学生Id
 	private String studentId;
-	//
+	// 学生性别
 	private String gender;
-	//
-	private String className;
-	//
-	private int grade;
+	// 学生班级
+	private String major;
+	// 学生年级
+	private String grade;
 
-	public Student(String studentId, String gender, String className) {
+	public Student(String studentId, String gender, String major, String grade) {
 		this.studentId = studentId;
 		this.gender = gender;
-		this.className = className;
-
+		this.major = major;
+		this.grade = grade;
 	}
 
 	public String getStudentId() {
@@ -38,27 +38,20 @@ public class Student {
 		this.gender = gender;
 	}
 
-	public void setClassName(String className) {
-		this.className = className;
+	public void setMajor(String major) {
+		this.major = major;
 	}
 
-	public String getClassName() {
-		return className;
+	public String getMajor() {
+		return major;
 	}
 
-	public int getGrade() {
+	public String getGrade() {
 		return grade;
 	}
 
-	/**
-	 * 大一:1 大二:2 大三:3 大四:4 研一:5 研二:6 研三:7
-	 */
-	// 根据班级名称获取年级信息
-	private int className2Grade(String className) {
-		// TODO:将获取到的班级名称通过当前年份转换为年级信息
-
-		//
-		return 0;
+	public void setGrade(String grade) {
+		this.grade = grade;
 	}
 
 }

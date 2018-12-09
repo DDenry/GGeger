@@ -48,8 +48,11 @@ public class LonelyDigger5 extends BaseProcess {
 	// 异性计数因子
 	private float differentGenderFactor = 1.0f;
 
-	// 同专业计数因子
-	private float sameMajorFactor = 1.5f;
+	// 同专业不同年级计数因子
+	private float sameMajorDifferentGradeFactor = 1.2f;
+
+	// 同专业同年级计数因子
+	private float sameMajorAndGradeFactor = 1.5f;
 
 	// 输出结果文件
 	private String resultPath;
@@ -115,15 +118,16 @@ public class LonelyDigger5 extends BaseProcess {
 		String[] values = data.split(",");
 		// 数据第一项：账单时间
 		// 数据第二项：学生id ObjectId(.....)
-		// 数据第三项：食堂名称
-		// 数据第四项：性别 String
-		// 数据第五项：班级
+		// 数据第三项：性别 String
+		// 数据第四项：年级
+		// 数据第五项：专业
+		// 数据第六项：食堂名称
 
 		// 获取专业名(只提取中文)
 		String majorName = values[4].replaceAll("[^(\\u4e00-\\u9fa5)]", "");
 
 		return new Bill.BillBuilder().setMillis(DateTransfer.string2Date(values[0]).getTime())
-				.setStudent(new Student(values[1], values[3], majorName)).setCanteenName(values[2]).build();
+				.setStudent(new Student(values[1], values[2], values[3], majorName)).setCanteenName(values[5]).build();
 	}
 
 	// 解析数据源
@@ -378,8 +382,16 @@ public class LonelyDigger5 extends BaseProcess {
 				// 两人同一专业
 				if (studentsInfo.get(lonerStudent.getStudentId()).getClass()
 						.equals(studentsInfo.get(possibleStudentId).getClass())
-						&& !studentsInfo.get(lonerStudent.getStudentId()).getClass().equals(""))
-					commonMealCount *= sameMajorFactor;
+						&& !studentsInfo.get(lonerStudent.getStudentId()).getClass().equals("")) {
+
+					if (studentsInfo.get(lonerStudent.getStudentId()).getGrade()
+							.equals(studentsInfo.get(possibleStudentId).getGrade()))
+						// 相同年级
+						commonMealCount *= sameMajorAndGradeFactor;
+					else
+						// 不同年级
+						commonMealCount *= sameMajorDifferentGradeFactor;
+				}
 
 				// 如果记录的共同吃饭次数占总吃饭次数的频率大于R，则视为好友
 				if ((float) commonMealCount / mealCounts > R) {

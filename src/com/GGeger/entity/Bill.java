@@ -3,7 +3,7 @@ package com.GGeger.entity;
 public class Bill {
 	// 账单时间
 	private long millis;
-	//
+	//学生实体
 	private Student student;
 	// 餐厅名称
 	private String canteenName;
