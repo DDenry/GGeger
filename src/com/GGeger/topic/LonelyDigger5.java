@@ -46,13 +46,19 @@ public class LonelyDigger5 extends BaseProcess {
 	private float sameGenderFactor = 1.0f;
 
 	// 异性计数因子
-	private float differentGenderFactor = 1.0f;
+	private float differentGenderFactor = 0.8f;
 
 	// 同专业不同年级计数因子
-	private float sameMajorDifferentGradeFactor = 1.2f;
+	private float sameMajorDifferentGradeFactor = 1.1f;
 
 	// 同专业同年级计数因子
-	private float sameMajorAndGradeFactor = 1.5f;
+	private float sameMajorAndGradeFactor = 1.2f;
+
+	// 同年级不同专业
+	private float sameGradeDifferentMajor = 1.1f;
+
+	// 不同年级不同专业
+	private float fewLink = 0.5f;
 
 	// 输出结果文件
 	private String resultPath;
@@ -91,8 +97,7 @@ public class LonelyDigger5 extends BaseProcess {
 
 		// String path = "C:/Users/DDenry/Desktop/_student_loner2.txt";
 //		String path = "C:/Users/DDenry/Desktop/student_loner.txt";
-		String path = "C:/Users/DDenry/Desktop/demo1000.txt";
-
+		String path = "";
 		@SuppressWarnings("resource")
 		Scanner scanner = new Scanner(System.in);
 
@@ -257,11 +262,13 @@ public class LonelyDigger5 extends BaseProcess {
 			Bill base = bills.get(inner_index);
 
 			// 如果学生信息列表中无该生信息
-			if (lonerStudentsInfo.get(base.getStudent().getStudentId()) == null) {
+			if (!lonerStudentsInfo.containsKey(base.getStudent().getStudentId())) {
 
 				LonerStudent lonerStudent = new LonerStudent();
 
 				lonerStudent.setStudentId(base.getStudent().getStudentId());
+
+				lonerStudent.setPosibleFriendsList(new HashMap<String, Integer>());
 
 				System.out.println(">" + lonerStudent.getStudentId());
 
@@ -272,10 +279,20 @@ public class LonelyDigger5 extends BaseProcess {
 			// 获取该生的吃饭次数
 			int mealCount = lonerStudentsInfo.get(base.getStudent().getStudentId()).getMealCount();
 
+			//
+			boolean haveSubtracted = false;
+
 			// 暂时吃饭次数自增
 			lonerStudentsInfo.get(base.getStudent().getStudentId()).setMealCount(++mealCount);// ++先自增，再运算
 
 			int loop = inner_index + 1;
+
+			// 标记为疑似好友
+			HashMap<String, Integer> friendsList = lonerStudentsInfo.get(base.getStudent().getStudentId())
+					.getPosibleFriendsList();
+
+			// 记录五分钟内已判断过的好友数量
+			List<String> haveHandledStudentId = new ArrayList<String>();
 
 			// 向下循环比较账单
 			while (loop < bills.size()) {
@@ -283,29 +300,61 @@ public class LonelyDigger5 extends BaseProcess {
 				Bill next = bills.get(loop);
 
 				// 判断时间是否符合规定间隔
-				if (next.getMillis() - base.getMillis() > T * 60 * 1000) {
+				if (next.getMillis() - base.getMillis() > T * 60 * 1000)
 					break;
-				}
 
 				// 判断如果是T分钟内的相同StudentId数据
 				else if (next.getStudent().getStudentId().equals(base.getStudent().getStudentId())) {
+
+					loop++;
+
+					// 如果本次循环已经裁剪过则直接进行下一次循环
+					if (haveSubtracted)
+						continue;
+
 					// 吃饭次数减1
-					lonerStudentsInfo.get(base.getStudent().getStudentId()).setMealCount(--mealCount);// --先自减，再运算
-					break;
+					// lonerStudentsInfo.get(base.getStudent().getStudentId()).setMealCount(--mealCount);//
+					// --先自减，再运算
+
+					// 标识该生已经裁剪过吃饭次数
+					haveSubtracted = true;
+
+					continue;
 				}
 				// 同一食堂进餐
 				else if (next.getCanteenName().equals(base.getCanteenName())) {
-					// 标记为疑似好友
-					HashMap<String, Integer> friendsList = lonerStudentsInfo.get(base.getStudent().getStudentId())
-							.getPosibleFriendsList();
-					friendsList.put(next.getStudent().getStudentId(),
-							friendsList.get(next.getStudent().getStudentId()) == null ? 1
-									: friendsList.get(next.getStudent().getStudentId()) + 1);
-				}
 
+					// 如果next.StudentID已经在暂存列表中，则直接进行下一次循环
+					if (haveHandledStudentId.indexOf(next.getStudent().getStudentId()) != -1) {
+
+						loop++;
+
+						continue;
+
+					} else {
+
+						// 将next.StudentID添加到暂存列表中
+						haveHandledStudentId.add(next.getStudent().getStudentId());
+
+					}
+
+					int commonMealCount = 0;
+
+					if (friendsList.containsKey(next.getStudent().getStudentId()))
+						commonMealCount = friendsList.get(next.getStudent().getStudentId());
+
+					commonMealCount++;
+
+					friendsList.put(next.getStudent().getStudentId(), commonMealCount);
+
+				}
 				//
 				loop++;
 			}
+
+			// 置空暂存列表
+			haveHandledStudentId.clear();
+			haveHandledStudentId = null;
 
 			// 象征意义的手动GC
 			System.gc();
@@ -318,20 +367,19 @@ public class LonelyDigger5 extends BaseProcess {
 
 				}
 			}
-
 		}
-
 	};
 
 	// 遍历疑似孤僻学生的好友信息
 	private void workResultOut() {
+
 		// 程序自检
 		if (lonerStudentsInfo.size() != studentsInfo.size()) {
 			System.err.println("Wrong result! Please find the danger bug or bugs!");
 			return;
 		}
 
-		resultPath = new File(".").getAbsoluteFile() + "/_log.txt";
+		resultPath = new File("").getAbsoluteFile() + "_log.txt";
 
 		// 判断当前输出文件是否存在
 		File saveFile = new File(resultPath);
@@ -368,7 +416,8 @@ public class LonelyDigger5 extends BaseProcess {
 
 				String possibleStudentId = entry.getKey();
 
-				int commonMealCount = entry.getValue();
+				//
+				float commonMealCount = (float) entry.getValue();
 
 				// 判断当前二人性别关系
 				// 同性
@@ -391,6 +440,14 @@ public class LonelyDigger5 extends BaseProcess {
 					else
 						// 不同年级
 						commonMealCount *= sameMajorDifferentGradeFactor;
+				} else {
+					if (studentsInfo.get(lonerStudent.getStudentId()).getGrade()
+							.equals(studentsInfo.get(possibleStudentId).getGrade()))
+						// 相同年级
+						commonMealCount *= sameGradeDifferentMajor;
+					else
+						// 不同年级
+						commonMealCount *= fewLink;
 				}
 
 				// 如果记录的共同吃饭次数占总吃饭次数的频率大于R，则视为好友
@@ -477,14 +534,17 @@ public class LonelyDigger5 extends BaseProcess {
 
 			// 判断是否吃饭次数少于规定次数
 			if (lonerStudent.getMealCount() < mealTotalCount) {
-				System.out.println(
-						"Cannot regard the one as loner due 2 few meal count (" + lonerStudent.getStudentId() + ")");
+
+				System.out.println("Cannot regard the one as loner due 2 few meal count (" + lonerStudent.getStudentId()
+						+ ")" + "=> Total mealCount is " + lonerStudent.getMealCount());
+
 			} else {
 
+				// 孤僻学子数量自增
 				lonelyStudentCount++;
 
-				System.err.println(
-						"Find lonely student " + lonerStudent.getStudentId() + " " + lonerStudent.getMealCount());
+				System.err.println("Find lonely student " + lonerStudent.getStudentId() + "=> Total mealCount is "
+						+ lonerStudent.getMealCount());
 
 			}
 
@@ -499,9 +559,6 @@ public class LonelyDigger5 extends BaseProcess {
 		try {
 
 			FileWriter fileWriter;
-
-			// 设置输出文件
-			resultPath = new File(".").getAbsoluteFile() + "/_log.txt";
 
 			fileWriter = new FileWriter(resultPath, true);
 
