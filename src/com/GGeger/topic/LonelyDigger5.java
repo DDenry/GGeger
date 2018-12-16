@@ -3,9 +3,11 @@ package com.GGeger.topic;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -21,124 +23,144 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import com.GGeger.entity.Bill;
+import com.GGeger.entity.Configuration;
+import com.GGeger.entity.LonerInfo;
+import com.GGeger.entity.LonerResult;
 import com.GGeger.entity.LonerStudent;
 import com.GGeger.entity.Student;
+import com.GGeger.entity.StudentsCountInfo;
 import com.GGeger.program.BaseProcess;
 import com.GGeger.program.Main;
 import com.GGeger.utils.DateTransfer;
+import com.GGeger.utils.Logger;
+import com.google.gson.Gson;
 
 public class LonelyDigger5 extends BaseProcess {
-
-	// ÉèÖÃ»º´æÁ¿5M
-	private int bufferedSize = 5 * 1024 * 1024;
-
-	// Ê±¼ä¼ä¸ô
+	// æ—¶é—´é—´éš”
 	private int T = 5;
 
-	// ³Ô·¹ÆµÂÊ
+	// åƒé¥­é¢‘ç‡
 	private float R = 1 / 4;
 
-	// ¹æ¶¨³Ô·¹×Ü´ÎÊıµÄ·ûºÏ±ê×¼
+	// è§„å®šåƒé¥­æ€»æ¬¡æ•°çš„ç¬¦åˆæ ‡å‡†
 	private int mealTotalCount = 3;
 
-	// ¶¨Òå¿ÉÑ¡²ÎÊı
-	// Í¬ĞÔ¼ÆÊıÒò×Ó
+	// å®šä¹‰å¯é€‰å‚æ•°
+	// åŒæ€§è®¡æ•°å› å­
 	private float sameGenderFactor = 1.0f;
 
-	// ÒìĞÔ¼ÆÊıÒò×Ó
+	// å¼‚æ€§è®¡æ•°å› å­
 	private float differentGenderFactor = 0.8f;
 
-	// Í¬×¨Òµ²»Í¬Äê¼¶¼ÆÊıÒò×Ó
+	// åŒä¸“ä¸šä¸åŒå¹´çº§è®¡æ•°å› å­
 	private float sameMajorDifferentGradeFactor = 1.1f;
 
-	// Í¬×¨ÒµÍ¬Äê¼¶¼ÆÊıÒò×Ó
+	// åŒä¸“ä¸šåŒå¹´çº§è®¡æ•°å› å­
 	private float sameMajorAndGradeFactor = 1.2f;
 
-	// Í¬Äê¼¶²»Í¬×¨Òµ
+	// åŒå¹´çº§ä¸åŒä¸“ä¸š
 	private float sameGradeDifferentMajor = 1.1f;
 
-	// ²»Í¬Äê¼¶²»Í¬×¨Òµ
+	// ä¸åŒå¹´çº§ä¸åŒä¸“ä¸š
 	private float fewLink = 0.5f;
 
-	// Êä³ö½á¹ûÎÄ¼ş
-	private String resultPath;
+	// ä¿å­˜å­¤åƒ»å­¦å­
+	private List<LonerInfo> lonerStudentInfoList = new ArrayList<LonerInfo>();
 
-	// ¶àÏß³Ì²¢·¢Ëø
+	// å¤šçº¿ç¨‹å¹¶å‘é”
 	private Object lock = new Object();
 
-	// ÔÊĞí×î´óÏß³Ì²¢·¢µÄÊıÁ¿
+	// å…è®¸æœ€å¤§çº¿ç¨‹å¹¶å‘çš„æ•°é‡
 	private int concurrentCount = 1;
 
-	// ÕËµ¥ÁĞ±í
+	// è´¦å•åˆ—è¡¨
 	private List<Bill> bills = new ArrayList<Bill>();
 
-	// ´¢´æÒÉËÆ¹ÂÆ§Ñ§ÉúµÄÏà¹ØĞÅÏ¢
+	// å‚¨å­˜ç–‘ä¼¼å­¤åƒ»å­¦ç”Ÿçš„ç›¸å…³ä¿¡æ¯
 	private Map<String, LonerStudent> lonerStudentsInfo;
 
-	// ´¢´æËùÓĞÑ§ÉúµÄĞÅÏ¢
+	// å‚¨å­˜æ‰€æœ‰å­¦ç”Ÿçš„ä¿¡æ¯
 	private Map<String, Student> studentsInfo;
 
-	// ¹¹Ôìº¯Êı
+	//
+	FileWriter fileWriter;
+
+	// å‡†å¤‡å†™å…¥æ–‡ä»¶
+	BufferedWriter bufferedWriter;
+
+	// è®¾ç½®ç¼“å­˜é‡5M
+	private int bufferedSize = 5 * 1024 * 1024;
+
+	//
+	private int maleStudentsCount = 0;
+
+	private int femaleStudentsCount = 0;
+
+	// æ„é€ å‡½æ•°
 	public LonelyDigger5() {
-		// ¹¹Ôìº¯Êı
+		// æ„é€ å‡½æ•°
 		for (int i = 0; i < 30; i++)
 			System.out.print("=");
 		System.out.println("");
-		System.out.println("×¨ÌâÒ»£ºÒÉËÆ¹ÂÆ§Ñ§Éú·ÖÎö");
+		System.out.println("ä¸“é¢˜ä¸€ï¼šç–‘ä¼¼å­¤åƒ»å­¦ç”Ÿåˆ†æ");
 	}
 
-	// Ö´ĞĞ
-	// Ö´ĞĞ·½·¨
+	// æ‰§è¡Œ
+	// æ‰§è¡Œæ–¹æ³•
 	public void execute() {
+
+		System.out.println("Algorithm is running ......");
+
 		//
 		lonerStudentsInfo = new HashMap<String, LonerStudent>();
 
 		studentsInfo = new HashMap<String, Student>();
 
 		// String path = "C:/Users/DDenry/Desktop/_student_loner2.txt";
-//		String path = "C:/Users/DDenry/Desktop/student_loner.txt";
-		String path = "";
+		String path = "C:/Users/DDenry/Desktop/model1000.txt";
+
 		@SuppressWarnings("resource")
 		Scanner scanner = new Scanner(System.in);
 
-		// ÅĞ¶ÏÄ¬ÈÏÎÄ¼şÊÇ·ñ´æÔÚ£¬²»´æÔÚÔòÌáÊ¾ÓÃ»§ÊäÈë
+		// åˆ¤æ–­é»˜è®¤æ–‡ä»¶æ˜¯å¦å­˜åœ¨ï¼Œä¸å­˜åœ¨åˆ™æç¤ºç”¨æˆ·è¾“å…¥
 		while (!new File(path).exists()) {
-			System.out.println("ÇëÊäÈëÕıÈ·µÄÊı¾İÂ·¾¶£º");
+
+			System.out.println("è¯·è¾“å…¥æ­£ç¡®çš„æ•°æ®è·¯å¾„ï¼š");
 			// C:/Users/DDenry/Desktop/student_loner.txt
-			// »ñÈ¡ÓÃ»§ÊäÈë
+			// è·å–ç”¨æˆ·è¾“å…¥
 			path = scanner.nextLine();
 		}
 
-		System.out.println(">>>>>>>>>>" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+		Logger.getInstance().print(">>>>>>>>>>" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
 
 		//
 		digData(path);
 	}
 
-	// ×Ö·û´®Êı¾İ×ª»»ÎªÕËµ¥
-	// ÕËµ¥×ª»»
+	// å­—ç¬¦ä¸²æ•°æ®è½¬æ¢ä¸ºè´¦å•
+	// è´¦å•è½¬æ¢
 	@Override
 	public Bill transfer2Bill(String data) {
-		// ·Ö¸ôÊı¾İ
+		// åˆ†éš”æ•°æ®
 		String[] values = data.split(",");
-		// Êı¾İµÚÒ»Ïî£ºÕËµ¥Ê±¼ä
-		// Êı¾İµÚ¶şÏî£ºÑ§Éúid ObjectId(.....)
-		// Êı¾İµÚÈıÏî£ºĞÔ±ğ String
-		// Êı¾İµÚËÄÏî£ºÄê¼¶
-		// Êı¾İµÚÎåÏî£º×¨Òµ
-		// Êı¾İµÚÁùÏî£ºÊ³ÌÃÃû³Æ
+		// æ•°æ®ç¬¬ä¸€é¡¹ï¼šè´¦å•æ—¶é—´
+		// æ•°æ®ç¬¬äºŒé¡¹ï¼šå­¦ç”Ÿid ObjectId(.....)
+		// æ•°æ®ç¬¬ä¸‰é¡¹ï¼šæ€§åˆ« String
+		// æ•°æ®ç¬¬å››é¡¹ï¼šå¹´çº§
+		// æ•°æ®ç¬¬äº”é¡¹ï¼šä¸“ä¸š
+		// æ•°æ®ç¬¬å…­é¡¹ï¼šé£Ÿå ‚åç§°
 
-		// »ñÈ¡×¨ÒµÃû(Ö»ÌáÈ¡ÖĞÎÄ)
+		// è·å–ä¸“ä¸šå(åªæå–ä¸­æ–‡)
 		String majorName = values[4].replaceAll("[^(\\u4e00-\\u9fa5)]", "");
 
 		return new Bill.BillBuilder().setMillis(DateTransfer.string2Date(values[0]).getTime())
 				.setStudent(new Student(values[1], values[2], values[3], majorName)).setCanteenName(values[5]).build();
 	}
 
-	// ½âÎöÊı¾İÔ´
+	// è§£ææ•°æ®æº
 	@Override
 	public void digData(String path) {
-		log("ÕıÔÚ»ñÈ¡Êı¾İ¡­¡­");
+		log("æ­£åœ¨è·å–æ•°æ®â€¦â€¦");
 
 		FileReader fileReader;
 
@@ -148,7 +170,7 @@ public class LonelyDigger5 extends BaseProcess {
 
 			BufferedReader bufferedReader = new BufferedReader(fileReader, bufferedSize);
 
-			// ¿ªÆôÏß³Ì¶ÁÈ¡Êı¾İ
+			// å¼€å¯çº¿ç¨‹è¯»å–æ•°æ®
 			new Thread(new Runnable() {
 
 				@Override
@@ -158,10 +180,10 @@ public class LonelyDigger5 extends BaseProcess {
 
 					try {
 						while ((line = bufferedReader.readLine()) != null) {
-							// ÌáÈ¡Bill
+							// æå–Bill
 							Bill bill = transfer2Bill(line);
 							bills.add(bill);
-							// ´¢´æÑ§ÉúĞÅÏ¢ÁĞ±í
+							// å‚¨å­˜å­¦ç”Ÿä¿¡æ¯åˆ—è¡¨
 							if (studentsInfo.get(bill.getStudent().getStudentId()) == null)
 								studentsInfo.put(bill.getStudent().getStudentId(), bill.getStudent());
 						}
@@ -190,7 +212,7 @@ public class LonelyDigger5 extends BaseProcess {
 			}).start();
 
 			synchronized (lock) {
-				System.out.println("Waiting for bills handling~");
+				Logger.getInstance().print("Waiting for bills handling~");
 
 				lock.wait();
 
@@ -199,11 +221,9 @@ public class LonelyDigger5 extends BaseProcess {
 					@Override
 					public void run() {
 
-						System.out.println("");
+						Logger.getInstance().print("Current index is " + index);
 
-						System.out.println("Current index is " + index);
-
-						System.out.println("");
+						Logger.getInstance().print("");
 
 					}
 				}, 0, 5000);
@@ -219,8 +239,8 @@ public class LonelyDigger5 extends BaseProcess {
 
 	private Timer timer = new Timer();
 
-	// Ñ°ÕÒÒÉËÆºÃÓÑ
-	// ±éÀúÕËµ¥
+	// å¯»æ‰¾ç–‘ä¼¼å¥½å‹
+	// éå†è´¦å•
 	private void findPossibleFriends() {
 
 		ExecutorService threadPool = Executors.newFixedThreadPool(concurrentCount);
@@ -229,12 +249,12 @@ public class LonelyDigger5 extends BaseProcess {
 			threadPool.execute(compareBills);
 
 		try {
-			// µÈ´ıËùÓĞµÄÏß³ÌÖ´ĞĞÍê±Ï
+			// ç­‰å¾…æ‰€æœ‰çš„çº¿ç¨‹æ‰§è¡Œå®Œæ¯•
 			synchronized (lock) {
 
 				lock.wait();
 
-				System.out.println("All " + bills.size() + " threads have finished!");
+				Logger.getInstance().print("All " + bills.size() + " threads have finished!");
 
 				timer.cancel();
 
@@ -246,22 +266,22 @@ public class LonelyDigger5 extends BaseProcess {
 		}
 	}
 
-	// ±éÀúÏÂ±ê
+	// éå†ä¸‹æ ‡
 	private int index = 0;
 
-	// ²¢·¢Ïß³ÌµÄÊµÀı
-	// ²¢·¢Ïß³ÌÊµÀı
+	// å¹¶å‘çº¿ç¨‹çš„å®ä¾‹
+	// å¹¶å‘çº¿ç¨‹å®ä¾‹
 	private Runnable compareBills = new Runnable() {
 
 		@Override
 		public void run() {
-			// È¡³öµÚindexÌõÊı¾İ
+			// å–å‡ºç¬¬indexæ¡æ•°æ®
 			int inner_index = index++;
 
-			// »ñÈ¡»ù×¼ÕËµ¥£¨×÷Îª²Î¿¼Ïî£©
+			// è·å–åŸºå‡†è´¦å•ï¼ˆä½œä¸ºå‚è€ƒé¡¹ï¼‰
 			Bill base = bills.get(inner_index);
 
-			// Èç¹ûÑ§ÉúĞÅÏ¢ÁĞ±íÖĞÎŞ¸ÃÉúĞÅÏ¢
+			// å¦‚æœå­¦ç”Ÿä¿¡æ¯åˆ—è¡¨ä¸­æ— è¯¥ç”Ÿä¿¡æ¯
 			if (!lonerStudentsInfo.containsKey(base.getStudent().getStudentId())) {
 
 				LonerStudent lonerStudent = new LonerStudent();
@@ -270,61 +290,61 @@ public class LonelyDigger5 extends BaseProcess {
 
 				lonerStudent.setPosibleFriendsList(new HashMap<String, Integer>());
 
-				System.out.println(">" + lonerStudent.getStudentId());
+//				Logger.getInstance().print(">" + lonerStudent.getStudentId());
 
 				//
 				lonerStudentsInfo.put(base.getStudent().getStudentId(), lonerStudent);
 			}
 
-			// »ñÈ¡¸ÃÉúµÄ³Ô·¹´ÎÊı
+			// è·å–è¯¥ç”Ÿçš„åƒé¥­æ¬¡æ•°
 			int mealCount = lonerStudentsInfo.get(base.getStudent().getStudentId()).getMealCount();
 
 			//
 			boolean haveSubtracted = false;
 
-			// ÔİÊ±³Ô·¹´ÎÊı×ÔÔö
-			lonerStudentsInfo.get(base.getStudent().getStudentId()).setMealCount(++mealCount);// ++ÏÈ×ÔÔö£¬ÔÙÔËËã
+			// æš‚æ—¶åƒé¥­æ¬¡æ•°è‡ªå¢
+			lonerStudentsInfo.get(base.getStudent().getStudentId()).setMealCount(++mealCount);// ++å…ˆè‡ªå¢ï¼Œå†è¿ç®—
 
 			int loop = inner_index + 1;
 
-			// ±ê¼ÇÎªÒÉËÆºÃÓÑ
+			// æ ‡è®°ä¸ºç–‘ä¼¼å¥½å‹
 			HashMap<String, Integer> friendsList = lonerStudentsInfo.get(base.getStudent().getStudentId())
 					.getPosibleFriendsList();
 
-			// ¼ÇÂ¼Îå·ÖÖÓÄÚÒÑÅĞ¶Ï¹ıµÄºÃÓÑÊıÁ¿
+			// è®°å½•äº”åˆ†é’Ÿå†…å·²åˆ¤æ–­è¿‡çš„å¥½å‹æ•°é‡
 			List<String> haveHandledStudentId = new ArrayList<String>();
 
-			// ÏòÏÂÑ­»·±È½ÏÕËµ¥
+			// å‘ä¸‹å¾ªç¯æ¯”è¾ƒè´¦å•
 			while (loop < bills.size()) {
 
 				Bill next = bills.get(loop);
 
-				// ÅĞ¶ÏÊ±¼äÊÇ·ñ·ûºÏ¹æ¶¨¼ä¸ô
+				// åˆ¤æ–­æ—¶é—´æ˜¯å¦ç¬¦åˆè§„å®šé—´éš”
 				if (next.getMillis() - base.getMillis() > T * 60 * 1000)
 					break;
 
-				// ÅĞ¶ÏÈç¹ûÊÇT·ÖÖÓÄÚµÄÏàÍ¬StudentIdÊı¾İ
+				// åˆ¤æ–­å¦‚æœæ˜¯Tåˆ†é’Ÿå†…çš„ç›¸åŒStudentIdæ•°æ®
 				else if (next.getStudent().getStudentId().equals(base.getStudent().getStudentId())) {
 
 					loop++;
 
-					// Èç¹û±¾´ÎÑ­»·ÒÑ¾­²Ã¼ô¹ıÔòÖ±½Ó½øĞĞÏÂÒ»´ÎÑ­»·
+					// å¦‚æœæœ¬æ¬¡å¾ªç¯å·²ç»è£å‰ªè¿‡åˆ™ç›´æ¥è¿›è¡Œä¸‹ä¸€æ¬¡å¾ªç¯
 					if (haveSubtracted)
 						continue;
 
-					// ³Ô·¹´ÎÊı¼õ1
+					// åƒé¥­æ¬¡æ•°å‡1
 					// lonerStudentsInfo.get(base.getStudent().getStudentId()).setMealCount(--mealCount);//
-					// --ÏÈ×Ô¼õ£¬ÔÙÔËËã
+					// --å…ˆè‡ªå‡ï¼Œå†è¿ç®—
 
-					// ±êÊ¶¸ÃÉúÒÑ¾­²Ã¼ô¹ı³Ô·¹´ÎÊı
+					// æ ‡è¯†è¯¥ç”Ÿå·²ç»è£å‰ªè¿‡åƒé¥­æ¬¡æ•°
 					haveSubtracted = true;
 
 					continue;
 				}
-				// Í¬Ò»Ê³ÌÃ½ø²Í
+				// åŒä¸€é£Ÿå ‚è¿›é¤
 				else if (next.getCanteenName().equals(base.getCanteenName())) {
 
-					// Èç¹ûnext.StudentIDÒÑ¾­ÔÚÔİ´æÁĞ±íÖĞ£¬ÔòÖ±½Ó½øĞĞÏÂÒ»´ÎÑ­»·
+					// å¦‚æœnext.StudentIDå·²ç»åœ¨æš‚å­˜åˆ—è¡¨ä¸­ï¼Œåˆ™ç›´æ¥è¿›è¡Œä¸‹ä¸€æ¬¡å¾ªç¯
 					if (haveHandledStudentId.indexOf(next.getStudent().getStudentId()) != -1) {
 
 						loop++;
@@ -333,7 +353,7 @@ public class LonelyDigger5 extends BaseProcess {
 
 					} else {
 
-						// ½«next.StudentIDÌí¼Óµ½Ôİ´æÁĞ±íÖĞ
+						// å°†next.StudentIDæ·»åŠ åˆ°æš‚å­˜åˆ—è¡¨ä¸­
 						haveHandledStudentId.add(next.getStudent().getStudentId());
 
 					}
@@ -352,15 +372,15 @@ public class LonelyDigger5 extends BaseProcess {
 				loop++;
 			}
 
-			// ÖÃ¿ÕÔİ´æÁĞ±í
+			// ç½®ç©ºæš‚å­˜åˆ—è¡¨
 			haveHandledStudentId.clear();
 			haveHandledStudentId = null;
 
-			// ÏóÕ÷ÒâÒåµÄÊÖ¶¯GC
+			// è±¡å¾æ„ä¹‰çš„æ‰‹åŠ¨GC
 			System.gc();
 
 			synchronized (lock) {
-				// Ïß³ÌÖ´ĞĞÍê±Ï
+				// çº¿ç¨‹æ‰§è¡Œå®Œæ¯•
 				if (index == bills.size()) {
 
 					lock.notify();
@@ -370,19 +390,19 @@ public class LonelyDigger5 extends BaseProcess {
 		}
 	};
 
-	// ±éÀúÒÉËÆ¹ÂÆ§Ñ§ÉúµÄºÃÓÑĞÅÏ¢
+	// éå†ç–‘ä¼¼å­¤åƒ»å­¦ç”Ÿçš„å¥½å‹ä¿¡æ¯
 	private void workResultOut() {
 
-		// ³ÌĞò×Ô¼ì
+		// ç¨‹åºè‡ªæ£€
 		if (lonerStudentsInfo.size() != studentsInfo.size()) {
 			System.err.println("Wrong result! Please find the danger bug or bugs!");
 			return;
 		}
 
-		resultPath = new File("").getAbsoluteFile() + "_log.txt";
+		String recordPath = Configuration.LONER_RESULT_RECORD;
 
-		// ÅĞ¶Ïµ±Ç°Êä³öÎÄ¼şÊÇ·ñ´æÔÚ
-		File saveFile = new File(resultPath);
+		// åˆ¤æ–­å½“å‰è¾“å‡ºæ–‡ä»¶æ˜¯å¦å­˜åœ¨
+		File saveFile = new File(recordPath);
 
 		if (saveFile.exists())
 			saveFile.delete();
@@ -395,21 +415,42 @@ public class LonelyDigger5 extends BaseProcess {
 
 			@Override
 			public void run() {
-				System.out.println((studentsInfo.size() - line) + " lines rest will be written later......");
+
+				Logger.getInstance().print((studentsInfo.size() - line) + " lines rest will be written later......");
+
 			}
+
 		}, 1000, 10000);
+
+		try {
+
+			fileWriter = new FileWriter(recordPath, true);
+
+			// å‡†å¤‡å†™å…¥æ–‡ä»¶
+			bufferedWriter = new BufferedWriter(fileWriter, bufferedSize);
+
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 
 		for (String studentId : studentsInfo.keySet()) {
 
+			// ç»Ÿè®¡å­¦ç”Ÿæ€§åˆ«ä¿¡æ¯
+			if (studentsInfo.get(studentId).getGender().equals("ç”·"))
+				maleStudentsCount++;
+			else if (studentsInfo.get(studentId).getGender().equals("å¥³"))
+				femaleStudentsCount++;
+
 			LonerStudent lonerStudent = lonerStudentsInfo.get(studentId);
 
-			// »ñÈ¡¸ÃÉúµÄ³Ô·¹×Ü´ÎÊı
+			// è·å–è¯¥ç”Ÿçš„åƒé¥­æ€»æ¬¡æ•°
 			int mealCounts = lonerStudent.getMealCount();
 
-			// µü´úÆ÷
+			// è¿­ä»£å™¨
 			Iterator<Entry<String, Integer>> iterator = lonerStudent.getPosibleFriendsList().entrySet().iterator();
 
-			// ±éÀúLonerStudent.posibleFriendsList
+			// éå†LonerStudent.posibleFriendsList
 			while (iterator.hasNext()) {
 
 				Map.Entry<String, Integer> entry = iterator.next();
@@ -419,41 +460,41 @@ public class LonelyDigger5 extends BaseProcess {
 				//
 				float commonMealCount = (float) entry.getValue();
 
-				// ÅĞ¶Ïµ±Ç°¶şÈËĞÔ±ğ¹ØÏµ
-				// Í¬ĞÔ
+				// åˆ¤æ–­å½“å‰äºŒäººæ€§åˆ«å…³ç³»
+				// åŒæ€§
 				if (studentsInfo.get(lonerStudent.getStudentId()).getGender()
 						.equals(studentsInfo.get(possibleStudentId).getGender())) {
 					commonMealCount *= sameGenderFactor;
 				} else
-					// ÒìĞÔ
+					// å¼‚æ€§
 					commonMealCount *= differentGenderFactor;
 
-				// Á½ÈËÍ¬Ò»×¨Òµ
+				// ä¸¤äººåŒä¸€ä¸“ä¸š
 				if (studentsInfo.get(lonerStudent.getStudentId()).getClass()
 						.equals(studentsInfo.get(possibleStudentId).getClass())
 						&& !studentsInfo.get(lonerStudent.getStudentId()).getClass().equals("")) {
 
 					if (studentsInfo.get(lonerStudent.getStudentId()).getGrade()
 							.equals(studentsInfo.get(possibleStudentId).getGrade()))
-						// ÏàÍ¬Äê¼¶
+						// ç›¸åŒå¹´çº§
 						commonMealCount *= sameMajorAndGradeFactor;
 					else
-						// ²»Í¬Äê¼¶
+						// ä¸åŒå¹´çº§
 						commonMealCount *= sameMajorDifferentGradeFactor;
 				} else {
 					if (studentsInfo.get(lonerStudent.getStudentId()).getGrade()
 							.equals(studentsInfo.get(possibleStudentId).getGrade()))
-						// ÏàÍ¬Äê¼¶
+						// ç›¸åŒå¹´çº§
 						commonMealCount *= sameGradeDifferentMajor;
 					else
-						// ²»Í¬Äê¼¶
+						// ä¸åŒå¹´çº§
 						commonMealCount *= fewLink;
 				}
 
-				// Èç¹û¼ÇÂ¼µÄ¹²Í¬³Ô·¹´ÎÊıÕ¼×Ü³Ô·¹´ÎÊıµÄÆµÂÊ´óÓÚR£¬ÔòÊÓÎªºÃÓÑ
+				// å¦‚æœè®°å½•çš„å…±åŒåƒé¥­æ¬¡æ•°å æ€»åƒé¥­æ¬¡æ•°çš„é¢‘ç‡å¤§äºRï¼Œåˆ™è§†ä¸ºå¥½å‹
 				if ((float) commonMealCount / mealCounts > R) {
 
-					// ½«¸ÃºÃÓÑÌí¼Óµ½ºÃÓÑÁĞ±í
+					// å°†è¯¥å¥½å‹æ·»åŠ åˆ°å¥½å‹åˆ—è¡¨
 					lonerStudent.getRealFriendsList().add(possibleStudentId);
 				}
 
@@ -464,13 +505,13 @@ public class LonelyDigger5 extends BaseProcess {
 			try {
 				synchronized (lock) {
 
-					// ¿ªÆôĞ´ÈëµÄÏß³Ì
+					// å¼€å¯å†™å…¥çš„çº¿ç¨‹
 					new Thread(new Runnable() {
 
 						@Override
 						public void run() {
 
-							// Êä³öÒÑ´¦ÀíºÃµÄ½á¹û
+							// è¾“å‡ºå·²å¤„ç†å¥½çš„ç»“æœ
 							outResultInRule(lonerStudent);
 
 							synchronized (lock) {
@@ -481,10 +522,10 @@ public class LonelyDigger5 extends BaseProcess {
 						}
 					}).start();
 
-					// µÈ´ıĞ´ÈëÍê±Ï
+					// ç­‰å¾…å†™å…¥å®Œæ¯•
 					lock.wait();
 
-					// System.out.println("Continue to handle next~");
+					// Logger.getInstance().print("Continue to handle next~");
 				}
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
@@ -492,7 +533,27 @@ public class LonelyDigger5 extends BaseProcess {
 			}
 		}
 
+		// åºåˆ—åŒ–å­¤åƒ»ç»“æœ
+		serialization();
+
+		// å…³é—­å†™å…¥
+		try {
+
+			bufferedWriter.close();
+
+			fileWriter.close();
+
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
+		// æ¸…ç©ºæ‰€æœ‰å˜é‡æ•°æ®
+		lonerStudentInfoList.clear();
+
 		innerTimer.cancel();
+
+		bills.clear();
 
 		studentsInfo.clear();
 
@@ -500,27 +561,53 @@ public class LonelyDigger5 extends BaseProcess {
 
 		lock = null;
 
-		System.out.println("");
+		Logger.getInstance().print("Total " + lonerStudentInfoList.size() + " lonely student found!");
 
-		System.out.println("Total " + lonelyStudentCount + " lonely student found!");
+		Logger.getInstance().print("Final result has output in " + recordPath);
 
-		System.out.println("Final result has output in " + resultPath);
+		// è¯¥ç®—æ³•æ‰§è¡Œå®Œæ¯•
+		System.out.println("LonelyDigger has accomplished!");
 
-		// ¸ÃËã·¨Ö´ĞĞÍê±Ï
-		log("LonelyDigger has accomplished!");
-
-		// ÏÔÊ¾Ö÷²Ëµ¥
+		// æ˜¾ç¤ºä¸»èœå•
 		Main.ShowMenu();
 
 	}
 
-	// Í³¼Æ¹ÂÆ§Ñ§×ÓµÄÊıÁ¿
-	private int lonelyStudentCount = 0;
+	/**
+	 * å°†æŒ‰è§„åˆ™è¾“å‡ºçš„ç»“æœåºåˆ—åŒ–
+	 */
+	@Override
+	public void serialization() {
+
+		LonerResult lonerResult = new LonerResult(
+				new StudentsCountInfo(studentsInfo.size(), maleStudentsCount, femaleStudentsCount),
+				(float) bills.size() / studentsInfo.size());
+
+		lonerResult.setLonerInfos(lonerStudentInfoList);
+
+		StringBuilder resultSerialization = new StringBuilder(new Gson().toJson(lonerResult));
+
+		try {
+
+			OutputStreamWriter outputStreamWriter = new OutputStreamWriter(
+					new FileOutputStream(new File(Configuration.LONER_RESULT_SERIALIZATION)), "UTF-8");
+
+			outputStreamWriter.write(resultSerialization.toString());
+
+			outputStreamWriter.flush();
+
+			outputStreamWriter.close();
+
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 
 	//
 	private int line = 0;
 
-	// °´¸ñÊ½Êä³öÑ§ÉúµÄºÃÓÑĞÅÏ¢
+	// æŒ‰æ ¼å¼è¾“å‡ºå­¦ç”Ÿçš„å¥½å‹ä¿¡æ¯
 	private void outResultInRule(LonerStudent lonerStudent) {
 
 		// log("Outputting result in rules ......");
@@ -529,22 +616,22 @@ public class LonelyDigger5 extends BaseProcess {
 		StringBuilder result = new StringBuilder(
 				lonerStudent.getStudentId() + "#" + lonerStudent.getRealFriendsList().size());
 
-		// ºÃÓÑÊıÁ¿Îª0Ôò±ê¼ÇÎª¹ÂÆ§Ñ§×Ó
+		// å¥½å‹æ•°é‡ä¸º0åˆ™æ ‡è®°ä¸ºå­¤åƒ»å­¦å­
 		if (lonerStudent.getRealFriendsList().size() == 0) {
 
-			// ÅĞ¶ÏÊÇ·ñ³Ô·¹´ÎÊıÉÙÓÚ¹æ¶¨´ÎÊı
+			// åˆ¤æ–­æ˜¯å¦åƒé¥­æ¬¡æ•°å°‘äºè§„å®šæ¬¡æ•°
 			if (lonerStudent.getMealCount() < mealTotalCount) {
 
-				System.out.println("Cannot regard the one as loner due 2 few meal count (" + lonerStudent.getStudentId()
-						+ ")" + "=> Total mealCount is " + lonerStudent.getMealCount());
+				Logger.getInstance().print("Cannot regard the one as loner due 2 few meal count ("
+						+ lonerStudent.getStudentId() + ")" + "=> Total mealCount is " + lonerStudent.getMealCount());
 
 			} else {
 
-				// ¹ÂÆ§Ñ§×ÓÊıÁ¿×ÔÔö
-				lonelyStudentCount++;
+				// æ·»åŠ å­¤åƒ»å­¦å­åˆ°ç»“æœåˆ—è¡¨
+				lonerStudentInfoList.add(new LonerInfo(studentsInfo.get(lonerStudent.getStudentId()), lonerStudent));
 
-				System.err.println("Find lonely student " + lonerStudent.getStudentId() + "=> Total mealCount is "
-						+ lonerStudent.getMealCount());
+				Logger.getInstance().print(0, "Find lonely student " + lonerStudent.getStudentId()
+						+ "=> Total mealCount is " + lonerStudent.getMealCount());
 
 			}
 
@@ -555,30 +642,19 @@ public class LonelyDigger5 extends BaseProcess {
 			}
 		}
 
-		// ½«½á¹ûĞ´ÈëÎÄ¼ş
+		// å°†ç»“æœå†™å…¥æ–‡ä»¶
 		try {
 
-			FileWriter fileWriter;
-
-			fileWriter = new FileWriter(resultPath, true);
-
-			// ×¼±¸Ğ´ÈëÎÄ¼ş
-			BufferedWriter bufferedWriter = new BufferedWriter(fileWriter, bufferedSize);
-
-			// ½«¸ÃĞĞÊı¾İĞ´ÈëÎÄ¼ş
+			// å°†è¯¥è¡Œæ•°æ®å†™å…¥æ–‡ä»¶
 			bufferedWriter.append(result.toString());
 
-			// »»ĞĞ
+			// æ¢è¡Œ
 			bufferedWriter.newLine();
 
 			line++;
 
-			// Ë¢ĞÂ
+			// åˆ·æ–°
 			bufferedWriter.flush();
-
-			bufferedWriter.close();
-
-			fileWriter.close();
 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

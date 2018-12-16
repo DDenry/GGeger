@@ -2,24 +2,16 @@ package com.GGeger.entity;
 
 public class Student {
 
-	/**
-	 * Student实体:包含学生Id、学生性别、年级(由班级解析获取)、
-	 */
-
-	// 学生Id
 	private String studentId;
-	// 学生性别
 	private String gender;
-	// 学生班级
 	private String major;
-	// 学生年级
 	private String grade;
 
-	public Student(String studentId, String gender, String major, String grade) {
+	public Student(String studentId, String gender, String grade, String major) {
 		this.studentId = studentId;
 		this.gender = gender;
-		this.major = major;
 		this.grade = grade;
+		this.major = major;
 	}
 
 	public String getStudentId() {

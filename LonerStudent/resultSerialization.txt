@@ -1,0 +1,1 @@
+{"studentsCountInfo":{"studentsCount":678,"maleStudentsCount":231,"femaleStudentsCount":446},"averageMealCount":1.4749262,"lonerInfos":[{"student":{"studentId":"ObjectId(5b5617c1f89c7e20c4e428dc)","gender":"女","major":"设计类","grade":"16"},"mealCount":4}]}

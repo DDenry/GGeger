@@ -9,8 +9,10 @@ import com.GGeger.process.Data2Bill;
 import com.GGeger.process.DataDigger;
 import com.GGeger.process.FormatLog;
 import com.GGeger.process.FormatOutput;
+import com.GGeger.process.ResultHandled;
+import com.GGeger.utils.Logger;
 
-public class BaseProcess implements DataDigger, Data2Bill, FormatOutput, FormatLog {
+public class BaseProcess implements DataDigger, Data2Bill, FormatOutput, FormatLog, ResultHandled {
 
 	@Override
 	public void digData(String path) {
@@ -30,17 +32,22 @@ public class BaseProcess implements DataDigger, Data2Bill, FormatOutput, FormatL
 	@Override
 	public void log(String content) {
 		//
-		System.out.println("");
-		System.out.println(">>>>>>>>>>>>>>>>>>>>");
-		System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
-		System.out.println(content);
-		System.out.println("");
+		Logger.getInstance().print("");
+		Logger.getInstance().print(">>>>>>>>>>>>>>>>>>>>");
+		Logger.getInstance().print(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+		Logger.getInstance().print(content);
+		Logger.getInstance().print("");
 	}
 
 	@Override
 	public BillModel _transfer2Bill(String data) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public void serialization() {
+
 	}
 
 }

@@ -4,14 +4,14 @@ import java.util.Scanner;
 
 import com.GGeger.topic.LonelyDigger5;
 import com.GGeger.topic.PoorDigger;
+import com.GGeger.topic.ResultShow;
 
 public class Main {
 
 	//
-	static String[] topics = new String[] { "×¨ÌâÒ»£ºÒÉËÆ¹ÂÆ§Ñ§Éú·ÖÎö", "×¨Ìâ¶ş£ºÒÉËÆÀ§ÄÑÑ§Éú·ÖÎö", "×¨ÌâÈı£ºÒÉËÆÌÓ¿ÎÑ§Éú·ÖÎö", "×¨ÌâËÄ£ºÒÉËÆÊ§ÁªÑ§Éú·ÖÎö",
-			"×¨ÌâÎå£ºÉú»îĞĞÎªÒì³£Ñ§Éú·ÖÎö" };
+	static String[] topics = new String[] { "ä¸“é¢˜ä¸€ï¼šç–‘ä¼¼å­¤åƒ»å­¦ç”Ÿåˆ†æ", "ä¸“é¢˜äºŒï¼šç–‘ä¼¼å›°éš¾å­¦ç”Ÿåˆ†æ", "ä¸“é¢˜ä¸‰ï¼šç–‘ä¼¼é€ƒè¯¾å­¦ç”Ÿåˆ†æ", "ä¸“é¢˜å››ï¼šç–‘ä¼¼å¤±è”å­¦ç”Ÿåˆ†æ",
+			"ä¸“é¢˜äº”ï¼šç”Ÿæ´»è¡Œä¸ºå¼‚å¸¸å­¦ç”Ÿåˆ†æ", "ç»“æœå±•ç¤º" };
 
-	// ³ÌĞòÈë¿Ú
 	public static void main(String[] args) {
 		//
 		ShowMenu();
@@ -19,7 +19,7 @@ public class Main {
 
 	//
 	public static void ShowMenu() {
-		// Éú³É²Ëµ¥
+
 		for (int i = 0; i < 7; i++) {
 			if (i < 1 || i > topics.length) {
 				for (int j = 0; j < 30; j++) {
@@ -36,37 +36,49 @@ public class Main {
 
 		//
 		int type;
+
 		boolean isAllowed = false;
+
 		@SuppressWarnings("resource")
 		Scanner scanner = new Scanner(System.in);
+
 		do {
-			System.out.println("ÇëÊäÈëÄúÒª²éÑ¯µÄ×¨Ìâ±êºÅ£º");
+			System.out.println("è¯·è¾“å…¥æ‚¨è¦æŸ¥è¯¢çš„ä¸“é¢˜æ ‡å·ï¼š");
 
 			type = scanner.nextInt();
+
 			//
 			isAllowed = true;
 			//
 			switch (type) {
-			// ×¨ÌâÒ»£ºÒÉËÆ¹ÂÆ§Ñ§Éú·ÖÎö
+			// ä¸“é¢˜ä¸€ï¼šç–‘ä¼¼å­¤åƒ»å­¦ç”Ÿåˆ†æ
 			case 1:
 				new LonelyDigger5().execute();
 				break;
-			// ×¨Ìâ¶ş£ºÒÉËÆÀ§ÄÑÑ§Éú·ÖÎö
+			// ä¸“é¢˜äºŒï¼šç–‘ä¼¼å›°éš¾å­¦ç”Ÿåˆ†æ
 			case 2:
 				new PoorDigger().Execute();
 				break;
-			// ×¨ÌâÈı£ºÒÉËÆÌÓ¿ÎÑ§Éú·ÖÎö
+			// ä¸“é¢˜ä¸‰ï¼šç–‘ä¼¼é€ƒè¯¾å­¦ç”Ÿåˆ†æ
 			case 3:
 				break;
-			// ×¨ÌâËÄ£ºÒÉËÆÊ§ÁªÑ§Éú·ÖÎö
+			// ä¸“é¢˜å››ï¼šç–‘ä¼¼å¤±è”å­¦ç”Ÿåˆ†æ
 			case 4:
 				break;
-			// ×¨ÌâÎå£ºÉú»îĞĞÎªÒì³£Ñ§Éú·ÖÎö
+			// ä¸“é¢˜äº”ï¼šç”Ÿæ´»è¡Œä¸ºå¼‚å¸¸å­¦ç”Ÿåˆ†æ
 			case 5:
 				break;
 
+			case 0:
+
+				new ResultShow().analyseResult();
+
+				break;
+
 			default:
+
 				isAllowed = false;
+
 				break;
 			}
 
