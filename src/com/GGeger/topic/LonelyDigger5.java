@@ -117,7 +117,7 @@ public class LonelyDigger5 extends BaseProcess {
 		studentsInfo = new HashMap<String, Student>();
 
 		// String path = "C:/Users/DDenry/Desktop/_student_loner2.txt";
-		String path = "C:/Users/DDenry/Desktop/model1000.txt";
+		String path = "C:/Users/DDenry/Desktop/model5000.txt";
 
 		@SuppressWarnings("resource")
 		Scanner scanner = new Scanner(System.in);
@@ -145,16 +145,18 @@ public class LonelyDigger5 extends BaseProcess {
 		String[] values = data.split(",");
 		// 数据第一项：账单时间
 		// 数据第二项：学生id ObjectId(.....)
-		// 数据第三项：性别 String
-		// 数据第四项：年级
-		// 数据第五项：专业
-		// 数据第六项：食堂名称
+		// 数据第三项： 学生身份
+		// 数据第四项：性别 String
+		// 数据第五项：年级
+		// 数据第六项：专业
+		// 数据第七项：食堂名称
 
 		// 获取专业名(只提取中文)
-		String majorName = values[4].replaceAll("[^(\\u4e00-\\u9fa5)]", "");
+		String majorName = values[5].replaceAll("[^(\\u4e00-\\u9fa5)]", "");
 
 		return new Bill.BillBuilder().setMillis(DateTransfer.string2Date(values[0]).getTime())
-				.setStudent(new Student(values[1], values[2], values[3], majorName)).setCanteenName(values[5]).build();
+				.setStudent(new Student(values[1], values[2], values[3], values[4], majorName))
+				.setCanteenName(values[6]).build();
 	}
 
 	// 解析数据源
@@ -288,28 +290,36 @@ public class LonelyDigger5 extends BaseProcess {
 
 				lonerStudent.setStudentId(base.getStudent().getStudentId());
 
+				lonerStudent.setBillsInfoList(new ArrayList<Bill>());
+
 				lonerStudent.setPosibleFriendsList(new HashMap<String, Integer>());
 
-//				Logger.getInstance().print(">" + lonerStudent.getStudentId());
+				// Logger.getInstance().print(">" +
+				// lonerStudent.getStudentId());
 
 				//
 				lonerStudentsInfo.put(base.getStudent().getStudentId(), lonerStudent);
 			}
 
+			// 获取该生的LonerStudent实例
+			LonerStudent lonerStudent = lonerStudentsInfo.get(base.getStudent().getStudentId());
+
+			//
+			lonerStudent.getBillsInfoList().add(base);
+
 			// 获取该生的吃饭次数
-			int mealCount = lonerStudentsInfo.get(base.getStudent().getStudentId()).getMealCount();
+			int mealCount = lonerStudent.getMealCount();
 
 			//
 			boolean haveSubtracted = false;
 
 			// 暂时吃饭次数自增
-			lonerStudentsInfo.get(base.getStudent().getStudentId()).setMealCount(++mealCount);// ++先自增，再运算
+			lonerStudent.setMealCount(++mealCount);// ++先自增，再运算
 
 			int loop = inner_index + 1;
 
 			// 标记为疑似好友
-			HashMap<String, Integer> friendsList = lonerStudentsInfo.get(base.getStudent().getStudentId())
-					.getPosibleFriendsList();
+			HashMap<String, Integer> friendsList = lonerStudent.getPosibleFriendsList();
 
 			// 记录五分钟内已判断过的好友数量
 			List<String> haveHandledStudentId = new ArrayList<String>();
@@ -333,7 +343,7 @@ public class LonelyDigger5 extends BaseProcess {
 						continue;
 
 					// 吃饭次数减1
-					// lonerStudentsInfo.get(base.getStudent().getStudentId()).setMealCount(--mealCount);//
+					// lonerStudent.setMealCount(--mealCount);//
 					// --先自减，再运算
 
 					// 标识该生已经裁剪过吃饭次数
@@ -548,6 +558,13 @@ public class LonelyDigger5 extends BaseProcess {
 			e1.printStackTrace();
 		}
 
+		Logger.getInstance().print("Total " + lonerStudentInfoList.size() + " lonely student found!");
+
+		Logger.getInstance().print("Final result has output in " + recordPath);
+
+		// 该算法执行完毕
+		System.out.println("LonelyDigger has accomplished!");
+
 		// 清空所有变量数据
 		lonerStudentInfoList.clear();
 
@@ -561,12 +578,8 @@ public class LonelyDigger5 extends BaseProcess {
 
 		lock = null;
 
-		Logger.getInstance().print("Total " + lonerStudentInfoList.size() + " lonely student found!");
-
-		Logger.getInstance().print("Final result has output in " + recordPath);
-
-		// 该算法执行完毕
-		System.out.println("LonelyDigger has accomplished!");
+		// 结果分析
+		new ResultShow().lonerResult();
 
 		// 显示主菜单
 		Main.ShowMenu();
@@ -579,7 +592,8 @@ public class LonelyDigger5 extends BaseProcess {
 	@Override
 	public void serialization() {
 
-		LonerResult lonerResult = new LonerResult(
+		LonerResult lonerResult = new LonerResult(DateTransfer.date2String(bills.get(0).getMillis()),
+				DateTransfer.date2String(bills.get(bills.size() - 1).getMillis()),
 				new StudentsCountInfo(studentsInfo.size(), maleStudentsCount, femaleStudentsCount),
 				(float) bills.size() / studentsInfo.size());
 

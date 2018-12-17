@@ -6,13 +6,11 @@ import java.util.List;
 
 public class LonerStudent {
 
-	/**
-	 * StudentId、个人吃饭总次数、好友列表（分别与好友吃饭次数以及好友总数量）
-	 */
-
 	private String studentId;
 
 	private int mealCount = 0;
+
+	private List<Bill> billsInfoList = new ArrayList<Bill>();
 
 	private HashMap<String, Integer> posibleFriendsList = new HashMap<String, Integer>();
 
@@ -32,6 +30,14 @@ public class LonerStudent {
 
 	public void setMealCount(int mealCount) {
 		this.mealCount = mealCount;
+	}
+
+	public List<Bill> getBillsInfoList() {
+		return billsInfoList;
+	}
+
+	public void setBillsInfoList(List<Bill> billsInfoList) {
+		this.billsInfoList = billsInfoList;
 	}
 
 	public HashMap<String, Integer> getPosibleFriendsList() {

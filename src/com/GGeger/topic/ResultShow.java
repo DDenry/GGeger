@@ -1,9 +1,9 @@
 package com.GGeger.topic;
 
 import com.GGeger.entity.LonerResult;
+import com.GGeger.pattern.chain.LonerInterpreter;
 import com.GGeger.pattern.factory.ResultFactory;
 import com.GGeger.pattern.factory.RuledResult;
-import com.GGeger.utils.Logger;
 
 public class ResultShow {
 
@@ -18,10 +18,10 @@ public class ResultShow {
 		lonerResult();
 
 		// 显示主菜单
-//		Main.ShowMenu();
+		// Main.ShowMenu();
 	}
 
-	private void lonerResult() {
+	public void lonerResult() {
 
 		ResultFactory resultFactory = new ResultFactory();
 
@@ -30,8 +30,8 @@ public class ResultShow {
 
 		LonerResult lonerResult = ruleResult.foldResult();
 
-		Logger.getInstance().print("学生总数：" + lonerResult.getStudentsCountInfo().getStudentsCount());
-		Logger.getInstance().print("男生人数：" + lonerResult.getStudentsCountInfo().getMaleStudentsCount());
-		Logger.getInstance().print("女生人数：" + lonerResult.getStudentsCountInfo().getFemaleStudentsCount());
+		// Student解释器
+		LonerInterpreter.getInstance().getChainOfInterpreters().distribute(lonerResult);
+
 	}
 }

@@ -4,12 +4,14 @@ public class Student {
 
 	private String studentId;
 	private String gender;
-	private String major;
+	private String identity;
 	private String grade;
+	private String major;
 
-	public Student(String studentId, String gender, String grade, String major) {
+	public Student(String studentId, String gender, String identity, String grade, String major) {
 		this.studentId = studentId;
 		this.gender = gender;
+		this.identity = identity;
 		this.grade = grade;
 		this.major = major;
 	}
@@ -28,6 +30,14 @@ public class Student {
 
 	public void setGender(String gender) {
 		this.gender = gender;
+	}
+
+	public String getIdentity() {
+		return identity;
+	}
+
+	public void setIdentity(String identity) {
+		this.identity = identity;
 	}
 
 	public void setMajor(String major) {

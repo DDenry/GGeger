@@ -71,7 +71,7 @@ public class Main {
 
 			case 0:
 
-				new ResultShow().analyseResult();
+				new ResultShow().lonerResult();
 
 				break;
 

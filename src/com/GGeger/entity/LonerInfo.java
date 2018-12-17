@@ -1,17 +1,21 @@
 package com.GGeger.entity;
 
+import java.util.List;
+
 public class LonerInfo {
 
 	/**
-	 * 孤僻学子 studentId,性别,专业,年级,吃饭次数,与所有学生平均吃饭次数的差值
+	 * 孤僻学子基本信息 吃饭总次数 孤僻学子的账单信息
 	 */
-	
+
 	private Student student;
 	private int mealCount;
+	private List<Bill> billsInfoList;
 
 	public LonerInfo(Student student, LonerStudent lonerStudent) {
 		this.student = student;
 		this.mealCount = lonerStudent.getMealCount();
+		this.billsInfoList = lonerStudent.getBillsInfoList();
 	}
 
 	public Student getStudent() {
@@ -28,5 +32,13 @@ public class LonerInfo {
 
 	public void setMealCount(int mealCount) {
 		this.mealCount = mealCount;
+	}
+
+	public List<Bill> getBillsInfoList() {
+		return billsInfoList;
+	}
+
+	public void setBillsInfoList(List<Bill> billsInfoList) {
+		this.billsInfoList = billsInfoList;
 	}
 }
