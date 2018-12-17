@@ -13,7 +13,7 @@ public class BillInterpreter extends EntityInterpreter {
 		Bill bill = (Bill) entity;
 
 		System.out.println("");
-		System.out.println("Bill:");
+		System.out.println(this.className + "->");
 		System.out.println("Bill's time is :" + DateTransfer.date2String(bill.getMillis()));
 		System.out.println("Bill's place is :" + bill.getCanteenName());
 	}

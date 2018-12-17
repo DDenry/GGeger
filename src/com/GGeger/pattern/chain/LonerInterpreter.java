@@ -31,16 +31,16 @@ public class LonerInterpreter {
 		EntityInterpreter lonerResultInterpreter = new LonerResultInterpreter();
 		// StudentsCountInfoInterpreter
 		EntityInterpreter studentsCountInfoInterpreter = new StudentsCountInfoInterpreter();
-		// LonerInfoInterpreter
-		EntityInterpreter lonerInfoInterpreter = new LonerInfoInterpreter();
+		// LonerStudentInterpreter
+		EntityInterpreter lonerStudentInterpreter = new LonerStudentInterpreter();
 		// BillInterpreter
 		EntityInterpreter billInterpreter = new BillInterpreter();
 		// StudentEntityInterpreter
 		EntityInterpreter studentInterpreter = new StudentInterpreter();
 
 		lonerResultInterpreter.setNextInterpreter(studentsCountInfoInterpreter);
-		studentsCountInfoInterpreter.setNextInterpreter(lonerInfoInterpreter);
-		lonerInfoInterpreter.setNextInterpreter(billInterpreter);
+		studentsCountInfoInterpreter.setNextInterpreter(lonerStudentInterpreter);
+		lonerStudentInterpreter.setNextInterpreter(billInterpreter);
 		billInterpreter.setNextInterpreter(studentInterpreter);
 
 		return lonerResultInterpreter;

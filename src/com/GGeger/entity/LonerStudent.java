@@ -6,9 +6,11 @@ import java.util.List;
 
 public class LonerStudent {
 
-	private String studentId;
+	private Student student;
 
 	private int mealCount = 0;
+
+	private long lastRecordTime = 0L;
 
 	private List<Bill> billsInfoList = new ArrayList<Bill>();
 
@@ -16,12 +18,12 @@ public class LonerStudent {
 
 	private List<String> realFriendsList = new ArrayList<String>();
 
-	public String getStudentId() {
-		return studentId;
+	public Student getStudent() {
+		return student;
 	}
 
-	public void setStudentId(String studentId) {
-		this.studentId = studentId;
+	public void setStudent(Student student) {
+		this.student = student;
 	}
 
 	public int getMealCount() {
@@ -30,6 +32,14 @@ public class LonerStudent {
 
 	public void setMealCount(int mealCount) {
 		this.mealCount = mealCount;
+	}
+
+	public long getLastRecordTime() {
+		return lastRecordTime;
+	}
+
+	public void setLastRecordTime(long lastRecordTime) {
+		this.lastRecordTime = lastRecordTime;
 	}
 
 	public List<Bill> getBillsInfoList() {

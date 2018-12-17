@@ -11,12 +11,12 @@ public class LonerResult {
 	private String billStartTime;
 	private String billStopTime;
 	private StudentsCountInfo studentsCountInfo;
-	private float averageMealCount;
+	private double averageMealCount;
 
-	private List<LonerInfo> lonerInfos;
+	private List<LonerStudent> lonerStudents;
 
 	public LonerResult(String billStartTime, String billStopTime, StudentsCountInfo studentsCountInfo,
-			float averagemealCount) {
+			double averagemealCount) {
 		this.billStartTime = billStartTime;
 		this.billStopTime = billStopTime;
 		this.studentsCountInfo = studentsCountInfo;
@@ -35,15 +35,15 @@ public class LonerResult {
 		return studentsCountInfo;
 	}
 
-	public float getAverageMealCount() {
+	public double getAverageMealCount() {
 		return averageMealCount;
 	}
 
-	public List<LonerInfo> getLonerInfos() {
-		return lonerInfos;
+	public List<LonerStudent> getLonerStudents() {
+		return lonerStudents;
 	}
 
-	public void setLonerInfos(List<LonerInfo> lonerInfos) {
-		this.lonerInfos = lonerInfos;
+	public void setLonerStudents(List<LonerStudent> lonerStudents) {
+		this.lonerStudents = lonerStudents;
 	}
 }

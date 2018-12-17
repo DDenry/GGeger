@@ -8,6 +8,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -24,7 +25,6 @@ import java.util.concurrent.Executors;
 
 import com.GGeger.entity.Bill;
 import com.GGeger.entity.Configuration;
-import com.GGeger.entity.LonerInfo;
 import com.GGeger.entity.LonerResult;
 import com.GGeger.entity.LonerStudent;
 import com.GGeger.entity.Student;
@@ -65,7 +65,7 @@ public class LonelyDigger5 extends BaseProcess {
 	private float fewLink = 0.5f;
 
 	// 保存孤僻学子
-	private List<LonerInfo> lonerStudentInfoList = new ArrayList<LonerInfo>();
+	private List<LonerStudent> lonerStudentsList = new ArrayList<LonerStudent>();
 
 	// 多线程并发锁
 	private Object lock = new Object();
@@ -288,17 +288,28 @@ public class LonelyDigger5 extends BaseProcess {
 
 				LonerStudent lonerStudent = new LonerStudent();
 
-				lonerStudent.setStudentId(base.getStudent().getStudentId());
+				lonerStudent.setStudent(base.getStudent());
+
+				lonerStudent.setLastRecordTime(base.getMillis());
 
 				lonerStudent.setBillsInfoList(new ArrayList<Bill>());
 
 				lonerStudent.setPosibleFriendsList(new HashMap<String, Integer>());
 
-				// Logger.getInstance().print(">" +
-				// lonerStudent.getStudentId());
-
 				//
 				lonerStudentsInfo.put(base.getStudent().getStudentId(), lonerStudent);
+
+			} else {
+
+				long lastRecordTime = lonerStudentsInfo.get(base.getStudent().getStudentId()).getLastRecordTime();
+
+				// 更新上次记录时间
+				lonerStudentsInfo.get(base.getStudent().getStudentId()).setLastRecordTime(base.getMillis());
+
+				// 判断与本人上次的记录时间是否符合规定间隔
+				if (base.getMillis() - lastRecordTime <= T * 60 * 1000)
+					return;
+
 			}
 
 			// 获取该生的LonerStudent实例
@@ -368,6 +379,29 @@ public class LonelyDigger5 extends BaseProcess {
 
 					}
 
+					// 如果学生信息列表中无该生信息
+					if (!lonerStudentsInfo.containsKey(next.getStudent().getStudentId())) {
+
+						LonerStudent subLonerStudent = new LonerStudent();
+
+						lonerStudent.setStudent(next.getStudent());
+
+						lonerStudent.setLastRecordTime(next.getMillis());
+
+						lonerStudent.setBillsInfoList(new ArrayList<Bill>());
+
+						lonerStudent.setPosibleFriendsList(new HashMap<String, Integer>());
+
+						//
+						lonerStudentsInfo.put(next.getStudent().getStudentId(), subLonerStudent);
+					}
+
+					// 判断被添加的Student距上次记录时间是否超出时间间隔
+					if (next.getMillis()
+							- lonerStudentsInfo.get(next.getStudent().getStudentId()).getLastRecordTime() < T * 60
+									* 1000)
+						continue;
+
 					int commonMealCount = 0;
 
 					if (friendsList.containsKey(next.getStudent().getStudentId()))
@@ -377,6 +411,18 @@ public class LonelyDigger5 extends BaseProcess {
 
 					friendsList.put(next.getStudent().getStudentId(), commonMealCount);
 
+					// 同理，被比对的好友列表中需添加该好友
+					HashMap<String, Integer> subFriendsList = lonerStudentsInfo.get(next.getStudent().getStudentId())
+							.getPosibleFriendsList();
+
+					if (subFriendsList.containsKey(lonerStudent.getStudent().getStudentId()))
+						commonMealCount = subFriendsList.get(lonerStudent.getStudent().getStudentId());
+					else
+						commonMealCount = 0;
+
+					commonMealCount++;
+
+					subFriendsList.put(lonerStudent.getStudent().getStudentId(), commonMealCount);
 				}
 				//
 				loop++;
@@ -472,28 +518,24 @@ public class LonelyDigger5 extends BaseProcess {
 
 				// 判断当前二人性别关系
 				// 同性
-				if (studentsInfo.get(lonerStudent.getStudentId()).getGender()
-						.equals(studentsInfo.get(possibleStudentId).getGender())) {
+				if (lonerStudent.getStudent().getGender().equals(studentsInfo.get(possibleStudentId).getGender())) {
 					commonMealCount *= sameGenderFactor;
 				} else
 					// 异性
 					commonMealCount *= differentGenderFactor;
 
 				// 两人同一专业
-				if (studentsInfo.get(lonerStudent.getStudentId()).getClass()
-						.equals(studentsInfo.get(possibleStudentId).getClass())
-						&& !studentsInfo.get(lonerStudent.getStudentId()).getClass().equals("")) {
+				if (lonerStudent.getStudent().getClass().equals(studentsInfo.get(possibleStudentId).getClass())
+						&& !lonerStudent.getStudent().getClass().equals("")) {
 
-					if (studentsInfo.get(lonerStudent.getStudentId()).getGrade()
-							.equals(studentsInfo.get(possibleStudentId).getGrade()))
+					if (lonerStudent.getStudent().getGrade().equals(studentsInfo.get(possibleStudentId).getGrade()))
 						// 相同年级
 						commonMealCount *= sameMajorAndGradeFactor;
 					else
 						// 不同年级
 						commonMealCount *= sameMajorDifferentGradeFactor;
 				} else {
-					if (studentsInfo.get(lonerStudent.getStudentId()).getGrade()
-							.equals(studentsInfo.get(possibleStudentId).getGrade()))
+					if (lonerStudent.getStudent().getGrade().equals(studentsInfo.get(possibleStudentId).getGrade()))
 						// 相同年级
 						commonMealCount *= sameGradeDifferentMajor;
 					else
@@ -558,7 +600,7 @@ public class LonelyDigger5 extends BaseProcess {
 			e1.printStackTrace();
 		}
 
-		Logger.getInstance().print("Total " + lonerStudentInfoList.size() + " lonely student found!");
+		Logger.getInstance().print("Total " + lonerStudentsList.size() + " lonely student found!");
 
 		Logger.getInstance().print("Final result has output in " + recordPath);
 
@@ -566,7 +608,7 @@ public class LonelyDigger5 extends BaseProcess {
 		System.out.println("LonelyDigger has accomplished!");
 
 		// 清空所有变量数据
-		lonerStudentInfoList.clear();
+		lonerStudentsList.clear();
 
 		innerTimer.cancel();
 
@@ -592,12 +634,14 @@ public class LonelyDigger5 extends BaseProcess {
 	@Override
 	public void serialization() {
 
+		double averageMealCount = Double
+				.parseDouble(new DecimalFormat("#.00").format((float) bills.size() / studentsInfo.size()));
+
 		LonerResult lonerResult = new LonerResult(DateTransfer.date2String(bills.get(0).getMillis()),
 				DateTransfer.date2String(bills.get(bills.size() - 1).getMillis()),
-				new StudentsCountInfo(studentsInfo.size(), maleStudentsCount, femaleStudentsCount),
-				(float) bills.size() / studentsInfo.size());
+				new StudentsCountInfo(studentsInfo.size(), maleStudentsCount, femaleStudentsCount), averageMealCount);
 
-		lonerResult.setLonerInfos(lonerStudentInfoList);
+		lonerResult.setLonerStudents(lonerStudentsList);
 
 		StringBuilder resultSerialization = new StringBuilder(new Gson().toJson(lonerResult));
 
@@ -628,7 +672,7 @@ public class LonelyDigger5 extends BaseProcess {
 
 		// StudentId#realFriendsCount[,friendAId,friendBId,...]
 		StringBuilder result = new StringBuilder(
-				lonerStudent.getStudentId() + "#" + lonerStudent.getRealFriendsList().size());
+				lonerStudent.getStudent().getStudentId() + "#" + lonerStudent.getRealFriendsList().size());
 
 		// 好友数量为0则标记为孤僻学子
 		if (lonerStudent.getRealFriendsList().size() == 0) {
@@ -636,15 +680,17 @@ public class LonelyDigger5 extends BaseProcess {
 			// 判断是否吃饭次数少于规定次数
 			if (lonerStudent.getMealCount() < mealTotalCount) {
 
-				Logger.getInstance().print("Cannot regard the one as loner due 2 few meal count ("
-						+ lonerStudent.getStudentId() + ")" + "=> Total mealCount is " + lonerStudent.getMealCount());
+				Logger.getInstance()
+						.print("Cannot regard the one as loner due 2 few meal count ("
+								+ lonerStudent.getStudent().getStudentId() + ")" + "=> Total mealCount is "
+								+ lonerStudent.getMealCount());
 
 			} else {
 
 				// 添加孤僻学子到结果列表
-				lonerStudentInfoList.add(new LonerInfo(studentsInfo.get(lonerStudent.getStudentId()), lonerStudent));
+				lonerStudentsList.add(lonerStudent);
 
-				Logger.getInstance().print(0, "Find lonely student " + lonerStudent.getStudentId()
+				Logger.getInstance().print(0, "Find lonely student " + lonerStudent.getStudent().getStudentId()
 						+ "=> Total mealCount is " + lonerStudent.getMealCount());
 
 			}
