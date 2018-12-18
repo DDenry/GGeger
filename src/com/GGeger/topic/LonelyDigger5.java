@@ -43,23 +43,23 @@ public class LonelyDigger5 extends BaseProcess {
 	private float R = 1 / 4;
 
 	// 规定吃饭总次数的符合标准
-	private int mealTotalCount = 3;
+	private int mealTotalCount = 1;
 
 	// 定义可选参数
 	// 同性计数因子
 	private float sameGenderFactor = 1.0f;
 
 	// 异性计数因子
-	private float differentGenderFactor = 0.8f;
+	private float differentGenderFactor = 1.0f;
 
 	// 同专业不同年级计数因子
-	private float sameMajorDifferentGradeFactor = 1.1f;
+	private float sameMajorDifferentGradeFactor = 1.0f;
 
 	// 同专业同年级计数因子
-	private float sameMajorAndGradeFactor = 1.2f;
+	private float sameMajorAndGradeFactor = 1.0f;
 
 	// 同年级不同专业
-	private float sameGradeDifferentMajor = 1.1f;
+	private float sameGradeDifferentMajor = 1.0f;
 
 	// 不同年级不同专业
 	private float fewLink = 0.5f;
@@ -117,7 +117,9 @@ public class LonelyDigger5 extends BaseProcess {
 		studentsInfo = new HashMap<String, Student>();
 
 		// String path = "C:/Users/DDenry/Desktop/_student_loner2.txt";
-		String path = "C:/Users/DDenry/Desktop/model5000.txt";
+		// String path = "C:/Users/DDenry/Desktop/model5000.txt";
+
+		String path = "";
 
 		@SuppressWarnings("resource")
 		Scanner scanner = new Scanner(System.in);
@@ -214,6 +216,7 @@ public class LonelyDigger5 extends BaseProcess {
 			}).start();
 
 			synchronized (lock) {
+
 				Logger.getInstance().print("Waiting for bills handling~");
 
 				lock.wait();
@@ -248,6 +251,7 @@ public class LonelyDigger5 extends BaseProcess {
 		ExecutorService threadPool = Executors.newFixedThreadPool(concurrentCount);
 
 		for (int i = 0; i < bills.size(); i++)
+
 			threadPool.execute(compareBills);
 
 		try {
@@ -278,10 +282,12 @@ public class LonelyDigger5 extends BaseProcess {
 		@Override
 		public void run() {
 			// 取出第index条数据
-			int inner_index = index++;
+			int innerIndex = index++;
+
+			boolean threadGoOn = true;
 
 			// 获取基准账单（作为参考项）
-			Bill base = bills.get(inner_index);
+			Bill base = bills.get(innerIndex);
 
 			// 如果学生信息列表中无该生信息
 			if (!lonerStudentsInfo.containsKey(base.getStudent().getStudentId())) {
@@ -290,7 +296,7 @@ public class LonelyDigger5 extends BaseProcess {
 
 				lonerStudent.setStudent(base.getStudent());
 
-				lonerStudent.setLastRecordTime(base.getMillis());
+				// lonerStudent.setLastRecordTime(base.getMillis());
 
 				lonerStudent.setBillsInfoList(new ArrayList<Bill>());
 
@@ -303,134 +309,124 @@ public class LonelyDigger5 extends BaseProcess {
 
 				long lastRecordTime = lonerStudentsInfo.get(base.getStudent().getStudentId()).getLastRecordTime();
 
-				// 更新上次记录时间
-				lonerStudentsInfo.get(base.getStudent().getStudentId()).setLastRecordTime(base.getMillis());
-
 				// 判断与本人上次的记录时间是否符合规定间隔
 				if (base.getMillis() - lastRecordTime <= T * 60 * 1000)
-					return;
+
+					threadGoOn = false;
 
 			}
 
-			// 获取该生的LonerStudent实例
-			LonerStudent lonerStudent = lonerStudentsInfo.get(base.getStudent().getStudentId());
+			// 更新上次记录时间
+			lonerStudentsInfo.get(base.getStudent().getStudentId()).setLastRecordTime(base.getMillis());
 
 			//
-			lonerStudent.getBillsInfoList().add(base);
+			if (threadGoOn) {
+				// 获取该生的LonerStudent实例
+				LonerStudent lonerStudent = lonerStudentsInfo.get(base.getStudent().getStudentId());
 
-			// 获取该生的吃饭次数
-			int mealCount = lonerStudent.getMealCount();
-
-			//
-			boolean haveSubtracted = false;
-
-			// 暂时吃饭次数自增
-			lonerStudent.setMealCount(++mealCount);// ++先自增，再运算
-
-			int loop = inner_index + 1;
-
-			// 标记为疑似好友
-			HashMap<String, Integer> friendsList = lonerStudent.getPosibleFriendsList();
-
-			// 记录五分钟内已判断过的好友数量
-			List<String> haveHandledStudentId = new ArrayList<String>();
-
-			// 向下循环比较账单
-			while (loop < bills.size()) {
-
-				Bill next = bills.get(loop);
-
-				// 判断时间是否符合规定间隔
-				if (next.getMillis() - base.getMillis() > T * 60 * 1000)
-					break;
-
-				// 判断如果是T分钟内的相同StudentId数据
-				else if (next.getStudent().getStudentId().equals(base.getStudent().getStudentId())) {
-
-					loop++;
-
-					// 如果本次循环已经裁剪过则直接进行下一次循环
-					if (haveSubtracted)
-						continue;
-
-					// 吃饭次数减1
-					// lonerStudent.setMealCount(--mealCount);//
-					// --先自减，再运算
-
-					// 标识该生已经裁剪过吃饭次数
-					haveSubtracted = true;
-
-					continue;
-				}
-				// 同一食堂进餐
-				else if (next.getCanteenName().equals(base.getCanteenName())) {
-
-					// 如果next.StudentID已经在暂存列表中，则直接进行下一次循环
-					if (haveHandledStudentId.indexOf(next.getStudent().getStudentId()) != -1) {
-
-						loop++;
-
-						continue;
-
-					} else {
-
-						// 将next.StudentID添加到暂存列表中
-						haveHandledStudentId.add(next.getStudent().getStudentId());
-
-					}
-
-					// 如果学生信息列表中无该生信息
-					if (!lonerStudentsInfo.containsKey(next.getStudent().getStudentId())) {
-
-						LonerStudent subLonerStudent = new LonerStudent();
-
-						lonerStudent.setStudent(next.getStudent());
-
-						lonerStudent.setLastRecordTime(next.getMillis());
-
-						lonerStudent.setBillsInfoList(new ArrayList<Bill>());
-
-						lonerStudent.setPosibleFriendsList(new HashMap<String, Integer>());
-
-						//
-						lonerStudentsInfo.put(next.getStudent().getStudentId(), subLonerStudent);
-					}
-
-					// 判断被添加的Student距上次记录时间是否超出时间间隔
-					if (next.getMillis()
-							- lonerStudentsInfo.get(next.getStudent().getStudentId()).getLastRecordTime() < T * 60
-									* 1000)
-						continue;
-
-					int commonMealCount = 0;
-
-					if (friendsList.containsKey(next.getStudent().getStudentId()))
-						commonMealCount = friendsList.get(next.getStudent().getStudentId());
-
-					commonMealCount++;
-
-					friendsList.put(next.getStudent().getStudentId(), commonMealCount);
-
-					// 同理，被比对的好友列表中需添加该好友
-					HashMap<String, Integer> subFriendsList = lonerStudentsInfo.get(next.getStudent().getStudentId())
-							.getPosibleFriendsList();
-
-					if (subFriendsList.containsKey(lonerStudent.getStudent().getStudentId()))
-						commonMealCount = subFriendsList.get(lonerStudent.getStudent().getStudentId());
-					else
-						commonMealCount = 0;
-
-					commonMealCount++;
-
-					subFriendsList.put(lonerStudent.getStudent().getStudentId(), commonMealCount);
-				}
 				//
-				loop++;
-			}
+				lonerStudent.getBillsInfoList().add(base);
 
-			// 置空暂存列表
-			haveHandledStudentId.clear();
-			haveHandledStudentId = null;
+				// 获取该生的吃饭次数
+				int mealCount = lonerStudent.getMealCount();
+
+				// 暂时吃饭次数自增
+				lonerStudent.setMealCount(++mealCount);// ++先自增，再运算
+
+//				System.out.println(lonerStudentsInfo.get(base.getStudent().getStudentId()).getMealCount());
+
+				int loop = innerIndex + 1;
+
+				// 标记为疑似好友
+				HashMap<String, Integer> friendsList = lonerStudent.getPosibleFriendsList();
+
+				// 记录五分钟内已判断过的好友数量
+				List<String> haveHandledStudentId = new ArrayList<String>();
+
+				// 向下循环比较账单
+				while (loop < bills.size()) {
+
+					Bill next = bills.get(loop);
+
+					// 判断时间是否符合规定间隔
+					if (next.getMillis() - base.getMillis() > T * 60 * 1000)
+						break;
+
+					// 同一食堂进餐
+					else if (next.getCanteenName().equals(base.getCanteenName())) {
+
+						// 如果next.StudentID已经在暂存列表中，则直接进行下一次循环
+						if (haveHandledStudentId.indexOf(next.getStudent().getStudentId()) != -1) {
+
+							loop++;
+
+							continue;
+
+						} else {
+
+							// 将next.StudentID添加到暂存列表中
+							haveHandledStudentId.add(next.getStudent().getStudentId());
+
+						}
+
+						// 如果学生信息列表中无该生信息
+						if (!lonerStudentsInfo.containsKey(next.getStudent().getStudentId())) {
+
+							LonerStudent subLonerStudent = new LonerStudent();
+
+							subLonerStudent.setStudent(next.getStudent());
+
+							// ATTENTION
+							subLonerStudent.setLastRecordTime(0L);
+
+							subLonerStudent.setBillsInfoList(new ArrayList<Bill>());
+
+							subLonerStudent.setPosibleFriendsList(new HashMap<String, Integer>());
+
+							//
+							lonerStudentsInfo.put(next.getStudent().getStudentId(), subLonerStudent);
+						}
+
+						// 判断被添加的Student距上次记录时间是否超出时间间隔
+						if (next.getMillis()
+								- lonerStudentsInfo.get(next.getStudent().getStudentId()).getLastRecordTime() <= T * 60
+										* 1000) {
+							loop++;
+
+							continue;
+						}
+
+						int commonMealCount = 0;
+
+						if (friendsList.containsKey(next.getStudent().getStudentId()))
+							commonMealCount = friendsList.get(next.getStudent().getStudentId());
+
+						commonMealCount++;
+
+						friendsList.put(next.getStudent().getStudentId(), commonMealCount);
+
+						// 同理，被比对的好友列表中需添加该好友
+						HashMap<String, Integer> subFriendsList = lonerStudentsInfo
+								.get(next.getStudent().getStudentId()).getPosibleFriendsList();
+
+						if (subFriendsList.containsKey(lonerStudent.getStudent().getStudentId()))
+							commonMealCount = subFriendsList.get(lonerStudent.getStudent().getStudentId());
+						else
+							commonMealCount = 0;
+
+						commonMealCount++;
+
+						subFriendsList.put(lonerStudent.getStudent().getStudentId(), commonMealCount);
+					}
+					//
+					loop++;
+				}
+
+				// 置空暂存列表
+				haveHandledStudentId.clear();
+				haveHandledStudentId = null;
+
+			}
 
 			// 象征意义的手动GC
 			System.gc();
@@ -514,12 +510,14 @@ public class LonelyDigger5 extends BaseProcess {
 				String possibleStudentId = entry.getKey();
 
 				//
-				float commonMealCount = (float) entry.getValue();
+				double commonMealCount = (double) entry.getValue();
 
 				// 判断当前二人性别关系
 				// 同性
 				if (lonerStudent.getStudent().getGender().equals(studentsInfo.get(possibleStudentId).getGender())) {
+
 					commonMealCount *= sameGenderFactor;
+
 				} else
 					// 异性
 					commonMealCount *= differentGenderFactor;
@@ -544,7 +542,7 @@ public class LonelyDigger5 extends BaseProcess {
 				}
 
 				// 如果记录的共同吃饭次数占总吃饭次数的频率大于R，则视为好友
-				if ((float) commonMealCount / mealCounts > R) {
+				if ((double) commonMealCount / mealCounts > R) {
 
 					// 将该好友添加到好友列表
 					lonerStudent.getRealFriendsList().add(possibleStudentId);

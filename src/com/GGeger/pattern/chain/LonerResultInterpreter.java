@@ -24,8 +24,9 @@ public class LonerResultInterpreter extends EntityInterpreter {
 		System.out.println("Average meal count is :" + lonerResult.getAverageMealCount());
 
 		// LonerInfo EntityInterpreter
-		for (int i = 0; i < lonerResult.getLonerInfos().size(); i++)
-			LonerInterpreter.getInstance().getChainOfInterpreters().distribute(lonerResult.getLonerInfos().get(i));
+		System.out.println("There're " + lonerResult.getLonerStudents().size() + " loner students found!");
+		for (int i = 0; i < lonerResult.getLonerStudents().size(); i++)
+			LonerInterpreter.getInstance().getChainOfInterpreters().distribute(lonerResult.getLonerStudents().get(i));
 
 	}
 
